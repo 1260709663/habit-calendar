@@ -1,0 +1,2033 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#3b6fe0">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>习惯打卡 · 本地日历</title>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#ffffff; --ink:#1b2330; --muted:#68748a;
+  --line:#e4e8ef; --cell:#edf0f5;
+  --body:#e4e9f1; --muscle:#cfd8e5;
+  --shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 26px -14px rgba(16,24,40,.22);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#101319; --card:#181d25; --ink:#e8ecf3; --muted:#94a1b5;
+    --line:#272e39; --cell:#222934; --body:#2a313b; --muscle:#38414e;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 14px 30px -16px rgba(0,0,0,.7); }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.5 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  padding:28px 16px 56px}
+.wrap{max-width:1000px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:default}
+h1,h2,h3{margin:0}
+.warn{margin-bottom:14px;padding:10px 14px;border-radius:10px;background:#fff3cd;color:#7a5b00;font-size:13px;border:1px solid #f0d98a}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.sub{margin:4px 0 0;color:var(--muted);font-size:13px}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;
+  font-size:13px;font-weight:600;box-shadow:var(--shadow);font-variant-numeric:tabular-nums}
+.card-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.add{margin-bottom:16px;padding:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.add select,.add input{background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:9px 11px;color:var(--ink);font:inherit;min-width:0}
+.add select{width:66px;text-align:center;font-size:17px}
+.add input{flex:1 1 200px}
+.add select:focus-visible,.add input:focus-visible{outline:2px solid #4f8cff55;outline-offset:1px;border-color:#4f8cff}
+.swatches{display:flex;gap:6px;padding:0 4px}
+.swatch{width:22px;height:22px;border-radius:50%;border:0;padding:0;background:var(--sw);
+  opacity:.55;transition:transform .12s,opacity .12s}
+.swatch:hover{opacity:.85}
+.swatch[aria-pressed="true"]{opacity:1;transform:scale(1.12);
+  box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--sw)}
+.btn{background:#3b6fe0;color:#fff;border:0;border-radius:10px;padding:9px 16px;font-weight:600}
+.btn:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);
+  font-weight:500;padding:8px 14px;border-radius:999px;font-size:13px}
+.btn.ghost:hover{background:var(--cell)}
+.monthbar{display:flex;align-items:center;justify-content:center;gap:10px;margin:22px 0 14px}
+.monthbar h2{font-size:17px;min-width:118px;text-align:center;font-variant-numeric:tabular-nums}
+.nav{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+  font-size:18px;line-height:1;display:grid;place-items:center;padding:0;box-shadow:var(--shadow)}
+.nav:hover{border-color:#4f8cff}
+#todayBtn{font-size:13px;padding:6px 12px;margin-left:4px}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:14px}
+.habit{padding:14px 16px 16px;border-top:4px solid var(--c)}
+.head{display:flex;align-items:center;gap:10px}
+.badge{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center;
+  font-size:18px;background:color-mix(in srgb,var(--c) 16%,transparent)}
+.title{flex:1;min-width:0}
+.title h3{font-size:15px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{margin:2px 0 0;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.check{border:1px solid var(--c);color:var(--c);background:transparent;border-radius:999px;
+  padding:5px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.check.on{background:var(--c);color:#fff}
+.del{border:0;background:transparent;color:var(--muted);font-size:15px;padding:4px 2px;opacity:.5}
+.del:hover{opacity:1;color:#e5484d}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0 6px;
+  font-size:11px;color:var(--muted);text-align:center}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{aspect-ratio:1;border:0;border-radius:9px;background:var(--cell);font-size:13px;
+  font-variant-numeric:tabular-nums;padding:0;transition:background .1s,box-shadow .1s}
+.day:not(:disabled):hover{box-shadow:inset 0 0 0 2px var(--c)}
+.day.done{background:var(--c);color:#fff;font-weight:650}
+.day.today{box-shadow:inset 0 0 0 2px var(--c)}
+.day.today.done{box-shadow:inset 0 0 0 2px rgba(255,255,255,.9)}
+.day.today:not(:disabled):hover{box-shadow:inset 0 0 0 2px var(--c),inset 0 0 0 4px rgba(255,255,255,.5)}
+.day:disabled{opacity:.3}
+.blank{aspect-ratio:1}
+.empty{text-align:center;color:var(--muted);padding:40px 12px 28px}
+.empty h2{font-size:16px;color:var(--ink);margin-bottom:6px}
+.empty p{margin:0;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.chip{border:1px dashed var(--line);background:var(--card);border-radius:999px;padding:7px 13px;font-size:13px}
+.chip:hover{border-color:#4f8cff;color:#3b6fe0}
+.foot{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+  margin-top:28px;font-size:12px;color:var(--muted)}
+.foot label{cursor:pointer}
+@media (max-width:560px){ .board{grid-template-columns:1fr} }
+
+/* ===== 训练 ===== */
+.tabs{display:flex;gap:4px;margin-bottom:18px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:4px;width:max-content;box-shadow:var(--shadow)}
+.backuptip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:9px 12px;
+  border-radius:12px;background:#fff7e0;border:1px solid #f0d98a;color:#7a5b00;font-size:12.5px}
+.backuptip[hidden]{display:none}
+.backuptip span{flex:1 1 200px}
+@media (prefers-color-scheme: dark){
+  .backuptip{background:#3a3218;border-color:#5c4c1a;color:#f0d98a}
+}
+.tab{border:0;background:transparent;padding:7px 18px;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted)}
+.tab.on{background:#3b6fe0;color:#fff}
+.train-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.train-grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px;align-items:start}
+.cal{padding:14px 14px 12px}
+.calbar{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.calbar h2{font-size:15px;min-width:110px;text-align:center;font-variant-numeric:tabular-nums}
+.tday{position:relative;height:40px;border:0;border-radius:9px;background:var(--cell);font-size:13px;
+  font-variant-numeric:tabular-nums;padding:0;transition:background .1s,box-shadow .1s}
+.tday.push{background:color-mix(in srgb,#4f8cff 16%,var(--cell))}
+.tday.pull{background:color-mix(in srgb,#22b573 16%,var(--cell))}
+.tday.legs{background:color-mix(in srgb,#f08c2e 18%,var(--cell))}
+.tday:not(:disabled):hover{box-shadow:inset 0 0 0 2px #4f8cff}
+.tday.today{box-shadow:inset 0 0 0 2px var(--ink)}
+.tday.sel{outline:2px solid #3b6fe0;outline-offset:1px}
+.tday .dot{position:absolute;left:50%;bottom:5px;transform:translateX(-50%)}
+.tday:disabled{opacity:.3}
+.cal .blank{aspect-ratio:auto;height:40px}
+.legend{display:flex;gap:14px;justify-content:center;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%}
+.dot.push{background:#4f8cff}.dot.pull{background:#22b573}.dot.legs{background:#f08c2e}
+.week{padding:14px 16px;margin-top:14px}
+.week h3{font-size:14px;margin-bottom:10px}
+.wrow{display:grid;grid-template-columns:26px 1fr 104px;align-items:center;gap:8px;margin:7px 0;font-size:12px}
+.wbar{height:8px;border-radius:99px;background:var(--cell);overflow:hidden}
+.wbar i{display:block;height:100%;background:#3b6fe0;border-radius:99px}
+.wrow b{font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;font-size:11px}
+.weektotal{margin:0 0 8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.weekhint{color:var(--muted);font-size:12px;margin:8px 0 0}
+.dayp{padding:16px;min-width:0}
+.dayhead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dayhead h2{font-size:17px}
+.types{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tbtn{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 14px;
+  font-size:13px;font-weight:600;color:var(--muted)}
+.tbtn.on{color:#fff;border-color:transparent}
+.tbtn.on[data-type="push"]{background:#4f8cff}
+.tbtn.on[data-type="pull"]{background:#22b573}
+.tbtn.on[data-type="legs"]{background:#f08c2e}
+.ab{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-left:2px}
+.ab button{border:0;background:transparent;padding:5px 10px;font-size:12px;font-weight:600;color:var(--muted)}
+.ab button.on{background:var(--ink);color:var(--card)}
+.items{margin-top:14px}
+.emptyday{color:var(--muted);font-size:13px;padding:16px 2px;margin:0}
+.item{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.itemhead{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;
+  padding:10px 12px;text-align:left}
+.itemhead:hover{background:var(--cell)}
+.ipart{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 5px;flex:none}
+.iname{font-weight:600;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.isets{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);flex:none}
+.icar{color:var(--muted);font-size:12px;flex:none}
+.iedit{font-size:11px;color:#3b6fe0;background:color-mix(in srgb,#3b6fe0 10%,transparent);
+  border-radius:999px;padding:2px 9px;flex:none}
+.item.open .iedit{color:var(--muted);background:transparent;border:1px solid var(--line)}
+.detail{padding:0 12px 12px;border-top:1px dashed var(--line)}
+.last{margin:8px 0;font-size:12px;color:var(--muted)}
+.setrow{display:flex;align-items:center;gap:6px;margin:6px 0}
+.setrow input{width:72px;border:1px solid var(--line);border-radius:8px;background:transparent;
+  color:var(--ink);padding:6px 8px;font:inherit;font-size:13px}
+.setrow input:focus-visible,.note:focus-visible{outline:2px solid #4f8cff55;border-color:#4f8cff}
+.setrow span{font-size:12px;color:var(--muted)}
+.setrow button{border:0;background:transparent;color:var(--muted);font-size:14px;padding:2px 4px}
+.detailrow{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.mini{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:4px 10px;
+  font-size:12px;color:var(--muted)}
+.mini:hover{border-color:#3b6fe0;color:#3b6fe0}
+.mini.danger{color:#e5484d;border-color:#e5484d55}
+.mini.danger:hover{background:#e5484d;color:#fff;border-color:#e5484d}
+.note{flex:1;min-width:120px;border:1px solid var(--line);border-radius:8px;background:transparent;
+  color:var(--ink);padding:6px 8px;font:inherit;font-size:12px}
+.partchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.pchip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 13px;
+  font-size:12px;font-weight:600;color:var(--muted)}
+.pchip.on{background:#3b6fe0;border-color:transparent;color:#fff}
+.addrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:0;border-top:0}
+.addrow input,.addrow select{border:1px solid var(--line);border-radius:8px;background:transparent;
+  color:var(--ink);padding:7px 9px;font:inherit;font-size:13px;min-width:0}
+.addrow input:focus-visible,.addrow select:focus-visible{outline:2px solid #4f8cff55;border-color:#4f8cff}
+#exName{flex:1 1 150px}
+#exW,#exR{width:66px}
+#exS{width:60px}
+.exquick{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px}
+.qchip{flex:none;border:1px solid var(--line);background:transparent;border-radius:999px;
+  padding:5px 11px;font-size:12px;color:var(--muted);white-space:nowrap}
+.qchip:hover{border-color:#3b6fe0;color:#3b6fe0}
+.addhint{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.bodymap polygon[data-part]{cursor:pointer}
+.bodymap polygon[data-part]:hover{filter:brightness(1.07)}
+.rrow[data-part]{cursor:pointer;border-radius:6px}
+.rrow[data-part]:hover{background:var(--cell)}
+.dayfoot{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.daysum{margin-top:12px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.modal{position:fixed;inset:0;background:rgba(10,14,20,.45);display:grid;place-items:center;padding:16px;z-index:50}
+.modal[hidden]{display:none}
+.sheet{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px 18px 14px;max-width:430px;width:100%;max-height:80vh;overflow:auto;
+  box-shadow:0 20px 60px -20px rgba(0,0,0,.5)}
+.sheet h3{font-size:16px;margin-bottom:2px}
+.mpr{color:var(--muted);font-size:12px;margin:0 0 8px}
+.mclose{position:absolute;right:10px;top:8px;border:0;background:transparent;color:var(--muted);font-size:15px}
+.spark{display:block;width:100%;height:auto;margin:8px 0 10px;overflow:visible}
+.hist{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;
+  border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+.hist:last-child{border:0}
+.hist b{font-weight:600}
+.muted{color:var(--muted);font-size:12px}
+.bhint{margin:0 0 2px;font-size:12px;color:var(--muted)}
+.bodymap{display:block;width:100%;height:auto;max-width:420px;margin:6px auto 2px}
+.bodymap polygon{stroke:none}
+.figcap{fill:var(--muted);font-size:11px;text-anchor:middle}
+.blegend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin:2px 0 8px}
+.blegend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px}
+.rrow{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:2px 0}
+.rrow b{color:var(--ink);font-weight:600}
+.bodybox{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.bodybox h4{margin:0 0 2px;font-size:13px;color:var(--muted);font-weight:600}
+.bodybox .bodymap{max-width:360px}
+.impbtns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.impbtns .btn{width:100%}
+.restbar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;background:#1b2330;color:#fff;border-radius:999px;
+  padding:9px 16px;box-shadow:0 12px 30px -10px rgba(0,0,0,.45);z-index:60;font-size:13px}
+.restbar[hidden]{display:none}
+.restbar.done{background:#1f7a4d}
+.restbar b{font-size:16px;font-variant-numeric:tabular-nums;min-width:46px;text-align:center}
+.rbtn{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;padding:5px 10px;font-size:12px}
+.rbtn:hover{background:rgba(255,255,255,.26)}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%) translateY(8px);background:#ffe9a8;color:#6d5400;border:1px solid #e0b13a;
+  border-radius:12px;padding:9px 16px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;z-index:61;white-space:nowrap;max-width:90vw;overflow:hidden;
+  text-overflow:ellipsis}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.item.pr{border-color:#e0b13a;box-shadow:0 0 0 1px #e0b13a55}
+.item.pr .isets{color:#b8860b;font-weight:700}
+.prbadge{font-size:10px;color:#7a5b00;background:#ffe9a8;border-radius:999px;padding:1px 6px;
+  flex:none;font-weight:700}
+.tplrow{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px}
+.tplhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+.tplhead b{font-size:14px}
+.tplhead span{color:var(--muted);font-size:12px}
+.tplnames{margin:6px 0 0;font-size:12px;color:var(--muted);line-height:1.6}
+.tplbtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+@media (prefers-color-scheme: dark){
+  .item.pr .isets{color:#e8c35a}
+  .prbadge{background:#4a3c10;color:#ffdf8a}
+}
+@media (max-width:820px){.train-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="backuptip" id="backupTip" hidden>
+    <span>数据只存在这台设备的浏览器里，建议复制一份备份。</span>
+    <button type="button" class="mini" id="backupNow">导出备份</button>
+    <button type="button" class="mini" id="backupLater">稍后</button>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="视图">
+    <button class="tab on" type="button" role="tab" data-tab="habits" aria-selected="true">打卡</button>
+    <button class="tab" type="button" role="tab" data-tab="train" aria-selected="false">训练</button>
+  </nav>
+  <div id="tab-habits">
+  <div id="warn" class="warn" hidden>浏览器禁止了本地存储，打卡记录无法保存。请换用 Chrome 或 Edge 打开。</div>
+
+  <div class="top">
+    <div>
+      <h1>习惯打卡 <span aria-hidden="true">🌱</span></h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="pill" id="todayStat"></div>
+  </div>
+
+  <form class="card-panel add" id="addForm">
+    <select id="emoji" aria-label="图标">
+      <option>🌱</option><option>📚</option><option>🏃</option><option>💧</option><option>🧘</option>
+      <option>💪</option><option>🎯</option><option>✍️</option><option>🛌</option><option>🍎</option>
+    </select>
+    <input id="name" maxlength="24" placeholder="新习惯，例如：睡前阅读 20 分钟" autocomplete="off" required>
+    <div class="swatches" id="swatches" role="group" aria-label="颜色"></div>
+    <button class="btn" type="submit">添加</button>
+  </form>
+
+  <div class="monthbar">
+    <button class="nav" id="prev" aria-label="上一月" type="button">‹</button>
+    <h2 id="monthLabel"></h2>
+    <button class="nav" id="next" aria-label="下一月" type="button">›</button>
+    <button class="btn ghost" id="todayBtn" type="button">回到本月</button>
+  </div>
+
+  <div class="board" id="board"></div>
+  <div class="empty" id="empty" hidden>
+    <h2>还没有习惯</h2>
+    <p>先加一个想坚持的小事，之后点日历格子就能打卡。</p>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="foot">
+    <button class="btn ghost" id="exportBtn" type="button">导出备份</button>
+    <label class="btn ghost">导入（覆盖）<input id="importFile" type="file" accept=".json,application/json" hidden></label>
+    <span>数据只保存在本机浏览器，建议偶尔导出备份</span>
+  </div>
+  </div><!-- /tab-habits -->
+
+  <div id="tab-train" hidden>
+    <div class="train-head">
+      <div>
+        <h1>训练日志 <span aria-hidden="true">🏋️</span></h1>
+        <p class="sub" id="tSub"></p>
+      </div>
+      <div class="pill" id="tPill"></div>
+    </div>
+    <div id="tWarn" class="warn" hidden>浏览器禁止了本地存储，训练记录无法保存。</div>
+
+    <div class="train-grid">
+      <div>
+        <section class="card-panel cal">
+          <div class="calbar">
+            <button class="nav" id="tPrev" aria-label="上一月" type="button">‹</button>
+            <h2 id="tMonth"></h2>
+            <button class="nav" id="tNext" aria-label="下一月" type="button">›</button>
+          </div>
+          <div class="dow" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+          <div class="days" id="tDays"></div>
+          <div class="legend"><span><i class="dot push"></i>推</span><span><i class="dot pull"></i>拉</span><span><i class="dot legs"></i>蹲</span></div>
+        </section>
+        <section class="card-panel week">
+          <h3>本周部位</h3>
+          <div id="tWeek"></div>
+        </section>
+        <section class="card-panel week">
+          <h3>部位恢复度</h3>
+          <div id="tBody"></div>
+        </section>
+      </div>
+
+      <section class="card-panel dayp" id="tDay"></section>
+    </div>
+
+    <div class="foot">
+      <button class="btn ghost" id="tExport" type="button">导出全部数据</button>
+      <label class="btn ghost">导入（可合并）<input id="tImport" type="file" accept=".json,application/json" hidden></label>
+      <span>打卡 + 训练，一份 JSON</span>
+    </div>
+
+    <div class="modal" id="tModal" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="动作详情">
+        <button class="mclose" id="tClose" type="button" aria-label="关闭">✕</button>
+        <h3 id="mTitle"></h3>
+        <p class="mpr" id="mPr"></p>
+        <div id="mChart"></div>
+        <div id="mList"></div>
+      </div>
+    </div>
+    <div class="modal" id="impModal" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="导入数据">
+        <h3>导入数据</h3>
+        <p class="mpr" id="impInfo"></p>
+        <div class="impbtns">
+          <button class="btn" id="impMerge" type="button">合并：保留两边记录</button>
+          <button class="btn ghost" id="impReplace" type="button">覆盖：用文件替换</button>
+          <button class="btn ghost" id="impCancel" type="button">取消</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="tplModal" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="训练模板">
+        <button class="mclose" id="tplClose" type="button" aria-label="关闭">✕</button>
+        <h3>训练模板</h3>
+        <p class="mpr">套用预设动作，或把今天存成模板。</p>
+        <div id="tplList"></div>
+      </div>
+    </div>
+
+    <div class="restbar" id="restBar" hidden>
+      <span>组间休息</span>
+      <b id="restTime">1:30</b>
+      <button type="button" class="rbtn" id="restPlus">+30s</button>
+      <button type="button" class="rbtn" id="restSkip">跳过</button>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div><!-- /tab-train -->
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const KEY = 'habit-calendar-v1';
+  const PALETTE = ['#4f8cff', '#22b573', '#f08c2e', '#9b6bff', '#e5484d', '#12a8b8', '#c9a227', '#e05a8f'];
+  const SUGGEST = [['💧', '喝水'], ['📚', '阅读'], ['🏃', '运动'], ['🛌', '早睡'], ['✍️', '写日记']];
+  const WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const DAY = 86400000;
+
+  const $ = (s, root) => (root || document).querySelector(s);
+  const pad = (n) => String(n).padStart(2, '0');
+  const keyOf = (y, m, d) => y + '-' + pad(m) + '-' + pad(d);
+  const toKey = (dt) => keyOf(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+  const dayNum = (key) => {
+    const p = key.split('-').map(Number);
+    return Date.UTC(p[0], p[1] - 1, p[2]) / DAY;
+  };
+  const fromDayNum = (n) => {
+    const dt = new Date(n * DAY);
+    return keyOf(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+  };
+  const uid = () => (window.crypto && crypto.randomUUID
+    ? crypto.randomUUID()
+    : 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7));
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+
+  const today = new Date();
+  const todayKey = toKey(today);
+
+  // 今天还没打卡时，连续天数从昨天往前算，避免早上打开就显示中断
+  function currentStreak(days, tKey) {
+    let n = dayNum(tKey);
+    if (!days[tKey]) n -= 1;
+    let count = 0;
+    while (days[fromDayNum(n)]) { count += 1; n -= 1; }
+    return count;
+  }
+
+  function longestStreak(days) {
+    const nums = Object.keys(days).map(dayNum).sort((a, b) => a - b);
+    let best = 0, run = 0, prev = null;
+    for (const n of nums) {
+      run = (prev !== null && n === prev + 1) ? run + 1 : 1;
+      if (run > best) best = run;
+      prev = n;
+    }
+    return best;
+  }
+
+  function normalizeHabit(h, i) {
+    const days = {};
+    const src = (h && typeof h.days === 'object' && h.days) || {};
+    for (const k of Object.keys(src)) {
+      if (src[k] && /^\d{4}-\d{2}-\d{2}$/.test(k)) days[k] = 1;
+    }
+    return {
+      id: typeof h.id === 'string' && h.id ? h.id : uid(),
+      name: String(h.name).slice(0, 24),
+      emoji: typeof h.emoji === 'string' && h.emoji ? h.emoji.slice(0, 4) : '🌱',
+      color: /^#[0-9a-f]{6}$/i.test(h.color || '') ? h.color : PALETTE[i % PALETTE.length],
+      days: days,
+      updatedAt: Number(h.updatedAt) || 0,
+    };
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return { habits: [] };
+      const data = JSON.parse(raw);
+      const list = Array.isArray(data) ? data : (data && data.habits);
+      if (!Array.isArray(list)) return { habits: [] };
+      return { habits: list.filter((h) => h && typeof h.name === 'string').map(normalizeHabit) };
+    } catch (err) {
+      return { habits: [] };
+    }
+  }
+
+  let state = load();
+  const view = { y: today.getFullYear(), m: today.getMonth() + 1 };
+  let pickedColor = PALETTE[0];
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (err) {
+      $('#warn').hidden = false;
+    }
+  }
+
+  function renderHead() {
+    const total = state.habits.length;
+    const done = state.habits.filter((h) => h.days[todayKey]).length;
+    $('#sub').textContent = today.getFullYear() + '年' + (today.getMonth() + 1) + '月' +
+      today.getDate() + '日 ' + WD[today.getDay()] + ' · 记录每一个小坚持';
+    $('#todayStat').textContent = '今天 ' + done + ' / ' + total;
+  }
+
+  function habitCard(h) {
+    const y = view.y, m = view.m;
+    const prefix = y + '-' + pad(m) + '-';
+    const monthDone = Object.keys(h.days).filter((k) => k.startsWith(prefix)).length;
+    const cur = currentStreak(h.days, todayKey);
+    const best = longestStreak(h.days);
+    const lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;
+    const dim = new Date(y, m, 0).getDate();
+    const todayNum = dayNum(todayKey);
+    const doneToday = Boolean(h.days[todayKey]);
+
+    let cells = '';
+    for (let i = 0; i < lead; i++) cells += '<span class="blank"></span>';
+    for (let d = 1; d <= dim; d++) {
+      const key = prefix + pad(d);
+      const done = Boolean(h.days[key]);
+      const isToday = key === todayKey;
+      const future = dayNum(key) > todayNum;
+      cells += '<button type="button" class="day' + (done ? ' done' : '') +
+        (isToday ? ' today' : '') + '" data-date="' + key +
+        '" aria-pressed="' + done + '" aria-label="' + key + ' ' + (done ? '已打卡' : '未打卡') +
+        '"' + (future ? ' disabled' : '') + '>' + d + '</button>';
+    }
+
+    return '<article class="card-panel habit" data-id="' + esc(h.id) + '" style="--c:' + h.color + '">' +
+      '<div class="head">' +
+        '<span class="badge" aria-hidden="true">' + esc(h.emoji) + '</span>' +
+        '<div class="title"><h3>' + esc(h.name) + '</h3>' +
+          '<p class="meta">本月 ' + monthDone + ' 天 · 连续 ' + cur + ' 天 · 最长 ' + best + ' 天</p></div>' +
+        '<button type="button" class="check' + (doneToday ? ' on' : '') +
+          '" data-act="check" title="切换今天的打卡状态">' + (doneToday ? '✓ 已打' : '打卡') + '</button>' +
+        '<button type="button" class="del" data-act="del" aria-label="删除这个习惯">✕</button>' +
+      '</div>' +
+      '<div class="dow" aria-hidden="true">' +
+        ['一', '二', '三', '四', '五', '六', '日'].map((w) => '<span>' + w + '</span>').join('') +
+      '</div>' +
+      '<div class="days">' + cells + '</div>' +
+    '</article>';
+  }
+
+  function renderBoard() {
+    $('#monthLabel').textContent = view.y + '年' + view.m + '月';
+    const board = $('#board');
+    const has = state.habits.length > 0;
+    $('#empty').hidden = has;
+    board.innerHTML = has ? state.habits.map(habitCard).join('') : '';
+  }
+
+  function render() {
+    renderHead();
+    renderBoard();
+  }
+
+  function addHabit(name, emoji, color) {
+    name = String(name || '').trim().slice(0, 24);
+    if (!name) return;
+    state.habits.push({
+      id: uid(),
+      name: name,
+      emoji: emoji || '🌱',
+      color: color || PALETTE[state.habits.length % PALETTE.length],
+      days: {},
+      updatedAt: Date.now(),
+    });
+    save();
+    render();
+  }
+
+  function toggleDay(id, date) {
+    const h = state.habits.find((x) => x.id === id);
+    if (!h || dayNum(date) > dayNum(todayKey)) return;
+    if (h.days[date]) delete h.days[date];
+    else h.days[date] = 1;
+    h.updatedAt = Date.now();
+    save();
+    render();
+  }
+
+  function removeHabit(id) {
+    const h = state.habits.find((x) => x.id === id);
+    if (!h) return;
+    if (!confirm('删除「' + h.name + '」？它的打卡记录也会一起删除。')) return;
+    state.habits = state.habits.filter((x) => x.id !== id);
+    save();
+    render();
+  }
+
+  function renderSwatches() {
+    $('#swatches').innerHTML = PALETTE.map((c) =>
+      '<button type="button" class="swatch" style="--sw:' + c + '" data-color="' + c +
+      '" aria-pressed="' + (c === pickedColor) + '" aria-label="颜色 ' + c + '"></button>'
+    ).join('');
+  }
+
+  $('#addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = $('#name');
+    if (!input.value.trim()) return;
+    addHabit(input.value, $('#emoji').value, pickedColor);
+    input.value = '';
+    input.focus();
+  });
+
+  $('#swatches').addEventListener('click', (e) => {
+    const b = e.target.closest('.swatch');
+    if (!b) return;
+    pickedColor = b.dataset.color;
+    renderSwatches();
+  });
+
+  $('#board').addEventListener('click', (e) => {
+    const card = e.target.closest('.habit');
+    if (!card) return;
+    const id = card.dataset.id;
+    const day = e.target.closest('.day');
+    if (day) { toggleDay(id, day.dataset.date); return; }
+    const act = e.target.closest('[data-act]');
+    if (!act) return;
+    if (act.dataset.act === 'check') toggleDay(id, todayKey);
+    if (act.dataset.act === 'del') removeHabit(id);
+  });
+
+  $('#chips').innerHTML = SUGGEST.map((s) =>
+    '<button type="button" class="chip" data-name="' + s[1] + '">' + s[0] + ' ' + s[1] + '</button>'
+  ).join('');
+  $('#chips').addEventListener('click', (e) => {
+    const c = e.target.closest('.chip');
+    if (!c) return;
+    addHabit(c.dataset.name, c.textContent.trim().split(' ')[0], PALETTE[state.habits.length % PALETTE.length]);
+  });
+
+  $('#prev').addEventListener('click', () => {
+    view.m -= 1;
+    if (view.m < 1) { view.m = 12; view.y -= 1; }
+    renderBoard();
+  });
+  $('#next').addEventListener('click', () => {
+    view.m += 1;
+    if (view.m > 12) { view.m = 1; view.y += 1; }
+    renderBoard();
+  });
+  $('#todayBtn').addEventListener('click', () => {
+    view.y = today.getFullYear();
+    view.m = today.getMonth() + 1;
+    renderBoard();
+  });
+
+  $('#exportBtn').addEventListener('click', () => {
+    const payload = { app: 'habit-calendar', version: 1, exportedAt: new Date().toISOString(), habits: state.habits };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '习惯打卡备份-' + todayKey + '.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  $('#importFile').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const list = Array.isArray(data) ? data : (data && data.habits);
+      if (!Array.isArray(list)) throw new Error('文件里没有找到习惯列表');
+      const habits = list.filter((h) => h && typeof h.name === 'string').map(normalizeHabit);
+      if (!confirm('导入 ' + habits.length + ' 个习惯，会覆盖当前的 ' + state.habits.length + ' 个，继续吗？')) return;
+      state = { habits: habits };
+      save();
+      render();
+    } catch (err) {
+      alert('导入失败：' + err.message);
+    }
+  });
+
+  renderSwatches();
+  render();
+})();
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---- 标签切换 ---- */
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.tab;
+      tabs.forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      document.getElementById('tab-habits').hidden = name !== 'habits';
+      document.getElementById('tab-train').hidden = name !== 'train';
+    });
+  });
+
+  const $ = (s, r) => (r || document).querySelector(s);
+
+  /* ---- 常量 ---- */
+  const TKEY = 'gym-log-v1';
+  const HKEY = 'habit-calendar-v1';
+  const EXPORT_KEY = 'gym-last-export';
+  const SNOOZE_KEY = 'gym-backup-snooze';
+  const WEEK_MS = 7 * 86400000;
+  const TYPES = {
+    push: { label: '推', color: '#4f8cff' },
+    pull: { label: '拉', color: '#22b573' },
+    legs: { label: '蹲', color: '#f08c2e' },
+  };
+  const ORDER = ['push', 'pull', 'legs'];
+  const PARTS = ['胸', '背', '腿', '肩', '臂', '核心'];
+  const SEED = [
+    // 胸
+    ['卧推', '胸'], ['上斜卧推', '胸'], ['哑铃卧推', '胸'], ['上斜哑铃卧推', '胸'],
+    ['上斜哑铃推', '胸'], ['下斜卧推', '胸'], ['史密斯卧推', '胸'], ['器械推胸', '胸'],
+    ['哑铃飞鸟', '胸'], ['器械夹胸', '胸'], ['蝴蝶机夹胸', '胸'], ['绳索夹胸', '胸'],
+    ['双杠臂屈伸', '胸'], ['负重双杠臂屈伸', '胸'], ['俯卧撑', '胸'], ['上斜俯卧撑', '胸'],
+    ['单臂哑铃卧推', '胸'], ['地板卧推', '胸'], ['哑铃仰卧上拉', '胸'],
+    // 背
+    ['引体向上', '背'], ['反手引体向上', '背'], ['辅助引体向上', '背'], ['高位下拉', '背'],
+    ['窄距下拉', '背'], ['直臂下拉', '背'], ['杠铃划船', '背'], ['哑铃划船', '背'],
+    ['单臂哑铃划船', '背'], ['坐姿划船', '背'], ['坐姿绳索划船', '背'], ['T杠划船', '背'],
+    ['潘德雷划船', '背'], ['直臂下压', '背'], ['面拉', '背'], ['硬拉', '背'],
+    ['山羊挺身', '背'], ['耸肩', '背'],
+    // 腿
+    ['深蹲', '腿'], ['前蹲', '腿'], ['哈克深蹲', '腿'], ['史密斯深蹲', '腿'],
+    ['腿举', '腿'], ['单腿腿举', '腿'], ['保加利亚分腿蹲', '腿'], ['箭步蹲', '腿'],
+    ['罗马尼亚硬拉', '腿'], ['直腿硬拉', '腿'], ['腿弯举', '腿'], ['腿屈伸', '腿'],
+    ['提踵', '腿'], ['坐姿提踵', '腿'], ['臀推', '腿'], ['臀桥', '腿'],
+    ['髋外展', '腿'], ['髋内收', '腿'],
+    // 肩
+    ['肩推', '肩'], ['哑铃肩推', '肩'], ['阿诺德推举', '肩'], ['史密斯肩推', '肩'],
+    ['侧平举', '肩'], ['单臂哑铃侧平举', '肩'], ['绳索侧平举', '肩'], ['前平举', '肩'],
+    ['后束飞鸟', '肩'], ['反向飞鸟', '肩'], ['直立划船', '肩'],
+    // 臂
+    ['弯举', '臂'], ['杠铃弯举', '臂'], ['哑铃弯举', '臂'], ['锤式弯举', '臂'],
+    ['牧师凳弯举', '臂'], ['集中弯举', '臂'], ['绳索弯举', '臂'], ['反握弯举', '臂'],
+    ['绳索下压', '臂'], ['单臂绳索下压', '臂'], ['过顶臂屈伸', '臂'], ['仰卧臂屈伸', '臂'],
+    ['哑铃颈后臂屈伸', '臂'], ['窄距卧推', '臂'],
+    // 核心
+    ['卷腹', '核心'], ['反向卷腹', '核心'], ['仰卧举腿', '核心'], ['悬垂举腿', '核心'],
+    ['平板支撑', '核心'], ['侧平板', '核心'], ['俄罗斯转体', '核心'], ['健腹轮', '核心'],
+    ['绳索卷腹', '核心'], ['登山跑', '核心'], ['死虫', '核心'],
+    // 器械固定轨迹
+    ['上斜器械推胸', '胸'], ['悍马机推胸', '胸'], ['器械飞鸟', '胸'],
+    ['悍马机划船', '背'], ['器械高位下拉', '背'],
+    ['史密斯箭步蹲', '腿'], ['史密斯分腿蹲', '腿'], ['坐姿腿弯举', '腿'],
+    ['器械侧平举', '肩'], ['器械推肩', '肩'], ['器械后束飞鸟', '肩'],
+    ['器械弯举', '臂'], ['器械下压', '臂'],
+    ['器械卷腹', '核心'], ['罗马椅举腿', '核心'],
+    // 家庭自重 / 弹力带
+    ['宽距俯卧撑', '胸'], ['钻石俯卧撑', '胸'], ['下斜俯卧撑', '胸'],
+    ['弹力带夹胸', '胸'], ['弹力带推胸', '胸'],
+    ['弹力带划船', '背'], ['弹力带下拉', '背'], ['弹力带面拉', '背'],
+    ['反向划船', '背'], ['超人式', '背'],
+    ['靠墙静蹲', '腿'], ['弹力带侧步', '腿'], ['弹力带深蹲', '腿'],
+    ['单腿臀桥', '腿'], ['台阶蹲', '腿'],
+    ['弹力带侧平举', '肩'], ['弹力带肩推', '肩'], ['弹力带前平举', '肩'],
+    ['弹力带弯举', '臂'], ['弹力带下压', '臂'],
+    ['鸟狗式', '核心'], ['空中自行车', '核心'], ['触踝卷腹', '核心'],
+  ];
+  const SEED_MAP = new Map(SEED);
+  const DAY = 86400000;
+  const REST_SEC = 90;
+  const WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const pad = (n) => String(n).padStart(2, '0');
+  const keyOf = (y, m, d) => y + '-' + pad(m) + '-' + pad(d);
+  const toKey = (dt) => keyOf(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+  const dayNum = (k) => { const p = k.split('-').map(Number); return Date.UTC(p[0], p[1] - 1, p[2]) / DAY; };
+  const fromDayNum = (n) => {
+    const dt = new Date(n * DAY);
+    return keyOf(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+  };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+  const e1 = (s) => s[0] * (1 + s[1] / 30);
+  const fmtW = (w) => (w > 0 ? String(w) : '自重');
+  const fmtVol = (v) => (v >= 1000 ? (v / 1000).toFixed(1) + ' 吨' : Math.round(v) + ' kg');
+
+  // 人体肌肉多边形数据来自 react-body-highlighter（MIT，© 2020 GV79），派生自 react-native-body-highlighter
+  const PART_COLORS = { 胸: '#4f8cff', 背: '#22b573', 腿: '#f08c2e', 肩: '#9b6bff', 臂: '#e05a8f', 核心: '#12a8b8' };
+  const MUSCLE_PART = {'chest':'胸', 'trapezius':'背', 'upper-back':'背', 'lower-back':'背', 'front-deltoids':'肩', 'back-deltoids':'肩', 'biceps':'臂', 'triceps':'臂', 'forearm':'臂', 'abs':'核心', 'obliques':'核心', 'quadriceps':'腿', 'hamstring':'腿', 'gluteal':'腿', 'abductors':'腿', 'abductor':'腿', 'calves':'腿', 'knees':'腿', 'left-soleus':'腿', 'right-soleus':'腿', 'head':null, 'neck':null};
+  const ANTERIOR_MU = [
+    ["chest", ["51.8367347 41.6326531 51.0204082 55.1020408 57.9591837 57.9591837 67.755102 55.5102041 70.6122449 47.3469388 62.0408163 41.6326531", "29.7959184 46.5306122 31.4285714 55.5102041 40.8163265 57.9591837 48.1632653 55.1020408 47.755102 42.0408163 37.5510204 42.0408163"]],
+    ["obliques", ["68.5714286 63.2653061 67.3469388 57.1428571 58.7755102 59.5918367 60 64.0816327 60.4081633 83.2653061 65.7142857 78.7755102 66.5306122 69.7959184", "33.877551 78.3673469 33.0612245 71.8367347 31.0204082 63.2653061 32.244898 57.1428571 40.8163265 59.1836735 39.1836735 63.2653061 39.1836735 83.6734694"]],
+    ["abs", ["56.3265306 59.1836735 57.9591837 64.0816327 58.3673469 77.9591837 58.3673469 92.6530612 56.3265306 98.3673469 55.1020408 104.081633 51.4285714 107.755102 51.0204082 84.4897959 50.6122449 67.3469388 51.0204082 57.1428571", "43.6734694 58.7755102 48.5714286 57.1428571 48.9795918 67.3469388 48.5714286 84.4897959 48.1632653 107.346939 44.4897959 103.673469 40.8163265 91.4285714 40.8163265 78.3673469 41.2244898 64.4897959"]],
+    ["biceps", ["16.7346939 68.1632653 17.9591837 71.4285714 22.8571429 66.122449 28.9795918 53.877551 27.755102 49.3877551 20.4081633 55.9183673", "71.4285714 49.3877551 70.2040816 54.6938776 76.3265306 66.122449 81.6326531 71.8367347 82.8571429 68.9795918 78.7755102 55.5102041"]],
+    ["triceps", ["69.3877551 55.5102041 69.3877551 61.6326531 75.9183673 72.6530612 77.5510204 70.2040816 75.5102041 67.3469388", "22.4489796 69.3877551 29.7959184 55.5102041 29.7959184 60.8163265 22.8571429 73.0612245"]],
+    ["neck", ["55.5102041 23.6734694 50.6122449 33.4693878 50.6122449 39.1836735 61.6326531 40 70.6122449 44.8979592 69.3877551 36.7346939 63.2653061 35.1020408 58.3673469 30.6122449", "28.9795918 44.8979592 30.2040816 37.1428571 36.3265306 35.1020408 41.2244898 30.2040816 44.4897959 24.4897959 48.9795918 33.877551 48.5714286 39.1836735 37.9591837 39.5918367"]],
+    ["front-deltoids", ["78.3673469 53.0612245 79.5918367 47.755102 79.1836735 41.2244898 75.9183673 37.9591837 71.0204082 36.3265306 72.244898 42.8571429 71.4285714 47.3469388", "28.1632653 47.3469388 21.2244898 53.0612245 20 47.755102 20.4081633 40.8163265 24.4897959 37.1428571 28.5714286 37.1428571 26.9387755 43.2653061"]],
+    ["head", ["42.4489796 2.85714286 40 11.8367347 42.0408163 19.5918367 46.122449 23.2653061 49.7959184 25.3061224 54.6938776 22.4489796 57.5510204 19.1836735 59.1836735 10.2040816 57.1428571 2.44897959 49.7959184 0"]],
+    ["abductors", ["52.6530612 110.204082 54.2857143 124.897959 60 110.204082 62.0408163 100 64.8979592 94.2857143 60 92.6530612 56.7346939 104.489796", "47.755102 110.612245 44.8979592 125.306122 42.0408163 115.918367 40.4081633 113.061224 39.5918367 107.346939 37.9591837 102.44898 34.6938776 93.877551 39.5918367 92.244898 41.6326531 99.1836735 43.6734694 105.306122"]],
+    ["quadriceps", ["34.6938776 98.7755102 37.1428571 108.163265 37.1428571 127.755102 34.2857143 137.142857 31.0204082 132.653061 29.3877551 120 28.1632653 111.428571 29.3877551 100.816327 32.244898 94.6938776", "63.2653061 105.714286 64.4897959 100 66.9387755 94.6938776 70.2040816 101.22449 71.0204082 111.836735 68.1632653 133.061224 65.3061224 137.55102 62.4489796 128.571429 62.0408163 111.428571", "38.7755102 129.387755 38.3673469 112.244898 41.2244898 118.367347 44.4897959 129.387755 42.8571429 135.102041 40 146.122449 36.3265306 146.530612 35.5102041 140", "59.5918367 145.714286 55.5102041 128.979592 60.8163265 113.877551 61.2244898 130.204082 64.0816327 139.591837 62.8571429 146.530612", "32.6530612 138.367347 26.5306122 145.714286 25.7142857 136.734694 25.7142857 127.346939 26.9387755 114.285714 29.3877551 133.469388", "71.8367347 113.061224 73.877551 124.081633 73.877551 140.408163 72.6530612 145.714286 66.5306122 138.367347 70.2040816 133.469388"]],
+    ["knees", ["33.877551 140 34.6938776 143.265306 35.5102041 147.346939 36.3265306 151.020408 35.1020408 156.734694 29.7959184 156.734694 27.3469388 152.653061 27.3469388 147.346939 30.2040816 144.081633", "65.7142857 140 72.244898 147.755102 72.244898 152.244898 69.7959184 157.142857 64.8979592 156.734694 62.8571429 151.020408"]],
+    ["calves", ["71.4285714 160.408163 73.4693878 153.469388 76.7346939 161.22449 79.5918367 167.755102 78.3673469 187.755102 79.5918367 195.510204 74.6938776 195.510204", "24.8979592 194.693878 27.755102 164.897959 28.1632653 160.408163 26.122449 154.285714 24.8979592 157.55102 22.4489796 161.632653 20.8163265 167.755102 22.0408163 188.163265 20.8163265 195.510204", "72.6530612 195.102041 69.7959184 159.183673 65.3061224 158.367347 64.0816327 162.44898 64.0816327 165.306122 65.7142857 177.142857", "35.5102041 158.367347 35.9183673 162.44898 35.9183673 166.938776 35.1020408 172.244898 35.1020408 176.734694 32.244898 182.040816 30.6122449 187.346939 26.9387755 194.693878 27.3469388 187.755102 28.1632653 180.408163 28.5714286 175.510204 28.9795918 169.795918 29.7959184 164.081633 30.2040816 158.77551"]],
+    ["forearm", ["6.12244898 88.5714286 10.2040816 75.1020408 14.6938776 70.2040816 16.3265306 74.2857143 19.1836735 73.4693878 4.48979592 97.5510204 0 100", "84.4897959 69.7959184 83.2653061 73.4693878 80 73.0612245 95.1020408 98.3673469 100 100.408163 93.4693878 89.3877551 89.7959184 76.3265306", "77.5510204 72.244898 77.5510204 77.5510204 80.4081633 84.0816327 85.3061224 89.7959184 92.244898 101.22449 94.6938776 99.5918367", "6.93877551 101.22449 13.4693878 90.6122449 18.7755102 84.0816327 21.6326531 77.1428571 21.2244898 71.8367347 4.89795918 98.7755102"]],
+  ];
+  const POSTERIOR_MU = [
+    ["head", ["50.6382979 0 45.9574468 0.85106383 40.8510638 5.53191489 40.4255319 12.7659574 45.106383 20 55.7446809 20 59.1489362 13.6170213 59.5744681 4.68085106 55.7446809 1.27659574"]],
+    ["trapezius", ["44.6808511 21.7021277 47.6595745 21.7021277 47.2340426 38.2978723 47.6595745 64.6808511 38.2978723 53.1914894 35.3191489 40.8510638 31.0638298 36.5957447 39.1489362 33.1914894 43.8297872 27.2340426", "52.3404255 21.7021277 55.7446809 21.7021277 56.5957447 27.2340426 60.8510638 32.7659574 68.9361702 36.5957447 64.6808511 40.4255319 61.7021277 53.1914894 52.3404255 64.6808511 53.1914894 38.2978723"]],
+    ["back-deltoids", ["29.3617021 37.0212766 22.9787234 39.1489362 17.4468085 44.2553191 18.2978723 53.6170213 24.2553191 49.3617021 27.2340426 46.3829787", "71.0638298 37.0212766 78.2978723 39.5744681 82.5531915 44.6808511 81.7021277 53.6170213 74.893617 48.9361702 72.3404255 45.106383"]],
+    ["upper-back", ["31.0638298 38.7234043 28.0851064 48.9361702 28.5106383 55.3191489 34.0425532 75.3191489 47.2340426 71.0638298 47.2340426 66.3829787 36.5957447 54.0425532 33.6170213 41.2765957", "68.9361702 38.7234043 71.9148936 49.3617021 71.4893617 56.1702128 65.9574468 75.3191489 52.7659574 71.0638298 52.7659574 66.3829787 63.4042553 54.4680851 66.3829787 41.7021277"]],
+    ["triceps", ["26.8085106 49.787234 17.8723404 55.7446809 14.4680851 72.3404255 16.5957447 81.7021277 21.7021277 63.8297872 26.8085106 55.7446809", "73.6170213 50.212766 82.1276596 55.7446809 85.9574468 73.1914894 83.4042553 82.1276596 77.8723404 62.9787234 73.1914894 55.7446809", "26.8085106 58.2978723 26.8085106 68.5106383 22.9787234 75.3191489 19.1489362 77.4468085 22.5531915 65.5319149", "72.7659574 58.2978723 77.0212766 64.6808511 80.4255319 77.4468085 76.5957447 75.3191489 72.7659574 68.9361702"]],
+    ["lower-back", ["47.6595745 72.7659574 34.4680851 77.0212766 35.3191489 83.4042553 49.3617021 102.12766 46.8085106 82.9787234", "52.3404255 72.7659574 65.5319149 77.0212766 64.6808511 83.4042553 50.6382979 102.12766 53.1914894 83.8297872"]],
+    ["forearm", ["86.3829787 75.7446809 91.0638298 83.4042553 93.1914894 94.0425532 100 106.382979 96.1702128 104.255319 88.0851064 89.3617021 84.2553191 83.8297872", "13.6170213 75.7446809 8.93617021 83.8297872 6.80851064 93.6170213 0 106.382979 3.82978723 104.255319 12.3404255 88.5106383 15.7446809 82.9787234", "81.2765957 79.5744681 77.4468085 77.8723404 79.1489362 84.6808511 91.0638298 103.829787 93.1914894 108.93617 94.4680851 104.680851", "18.7234043 79.5744681 22.1276596 77.8723404 20.8510638 84.2553191 9.36170213 102.978723 6.80851064 108.510638 5.10638298 104.680851"]],
+    ["gluteal", ["44.6808511 99.5744681 30.212766 108.510638 29.787234 118.723404 31.4893617 125.957447 47.2340426 121.276596 49.3617021 114.893617", "55.3191489 99.1489362 51.0638298 114.468085 52.3404255 120.851064 68.0851064 125.957447 69.787234 119.148936 69.3617021 108.510638"]],
+    ["abductor", ["48.0851064 122.978723 44.6808511 122.978723 41.2765957 125.531915 45.106383 144.255319 48.5106383 135.744681 48.9361702 129.361702", "51.9148936 122.553191 55.7446809 123.404255 59.1489362 125.957447 54.893617 144.255319 51.9148936 136.170213 51.0638298 129.361702"]],
+    ["hamstring", ["28.9361702 122.12766 31.0638298 129.361702 36.5957447 125.957447 35.3191489 135.319149 34.4680851 150.212766 29.3617021 158.297872 28.9361702 146.808511 27.6595745 141.276596 27.2340426 131.489362", "71.4893617 121.702128 69.3617021 128.93617 63.8297872 125.957447 65.5319149 136.595745 66.3829787 150.212766 71.0638298 158.297872 71.4893617 147.659574 72.7659574 142.12766 73.6170213 131.914894", "38.7234043 125.531915 44.2553191 145.957447 40.4255319 166.808511 36.1702128 152.765957 37.0212766 135.319149", "61.7021277 125.531915 63.4042553 136.170213 64.2553191 153.191489 60 166.808511 56.1702128 146.382979"]],
+    ["knees", ["34.4680851 153.191489 31.0638298 159.148936 33.6170213 166.382979 37.4468085 162.553191", "66.3829787 153.617021 62.9787234 162.978723 66.8085106 166.382979 69.3617021 159.148936"]],
+    ["calves", ["29.3617021 160.425532 28.5106383 167.234043 24.6808511 179.574468 23.8297872 192.765957 25.5319149 197.021277 28.5106383 193.191489 29.787234 180 31.9148936 171.06383 31.9148936 166.808511", "37.4468085 165.106383 35.3191489 167.659574 33.1914894 171.914894 31.0638298 180.425532 30.212766 191.914894 34.0425532 200 38.7234043 190.638298 39.1489362 168.93617", "62.9787234 165.106383 61.2765957 168.510638 61.7021277 190.638298 66.3829787 199.574468 70.6382979 191.914894 68.9361702 179.574468 66.8085106 170.212766", "70.6382979 160.425532 72.3404255 168.510638 75.7446809 179.148936 76.5957447 192.765957 74.4680851 196.595745 72.3404255 193.617021 70.6382979 179.574468 68.0851064 168.085106"]],
+    ["left-soleus", ["28.5106383 195.744681 30.212766 195.744681 33.6170213 201.702128 30.6382979 220 28.5106383 213.617021 26.8085106 198.297872"]],
+    ["right-soleus", ["69.787234 195.744681 71.9148936 195.744681 73.6170213 198.297872 71.9148936 213.191489 70.212766 219.574468 67.2340426 202.12766"]],
+  ];
+
+
+  const today = new Date();
+  const todayKey = toKey(today);
+
+  /* ---- 数据 ---- */
+  function normalize(d) {
+    const sessions = {};
+    const exercises = {};
+    const templates = {};
+    if (d && d.templates && typeof d.templates === 'object') {
+      for (const t of ORDER) {
+        const v = d.templates[t];
+        if (!v || !Array.isArray(v.items)) continue;
+        const items = [];
+        for (const it of v.items) {
+          if (!it || typeof it.name !== 'string') continue;
+          const sets = (Array.isArray(it.sets) ? it.sets : [])
+            .filter((s) => Array.isArray(s) && s.length === 2)
+            .map((s) => [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1))]);
+          if (!sets.length) continue;
+          items.push({
+            name: it.name.slice(0, 20),
+            part: PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他'),
+            note: '',
+            sets: sets,
+          });
+        }
+        if (items.length) templates[t] = { items: items, updatedAt: Number(v.updatedAt) || 0 };
+      }
+    }
+    if (d && d.exercises && typeof d.exercises === 'object') {
+      for (const k of Object.keys(d.exercises)) {
+        const p = d.exercises[k];
+        if (PARTS.indexOf(p) !== -1) exercises[String(k).slice(0, 20)] = p;
+      }
+    }
+    if (d && d.sessions && typeof d.sessions === 'object') {
+      for (const k of Object.keys(d.sessions)) {
+        const v = d.sessions[k];
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !v || !Array.isArray(v.items)) continue;
+        const items = [];
+        for (const it of v.items) {
+          if (!it || typeof it.name !== 'string') continue;
+          const sets = (Array.isArray(it.sets) ? it.sets : [])
+            .filter((s) => Array.isArray(s) && s.length === 2)
+            .map((s) => [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1))]);
+          if (!sets.length) continue;
+          items.push({
+            name: it.name.slice(0, 20),
+            part: PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他'),
+            note: typeof it.note === 'string' ? it.note.slice(0, 80) : '',
+            sets: sets,
+          });
+        }
+        if (!items.length) continue;
+        sessions[k] = {
+          type: ORDER.indexOf(v.type) !== -1 ? v.type : 'push',
+          ab: v.ab === 'B' ? 'B' : 'A',
+          items: items,
+          updatedAt: Number(v.updatedAt) || 0,
+        };
+      }
+    }
+    return { sessions: sessions, exercises: exercises, templates: templates };
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(TKEY);
+      return normalize(raw ? JSON.parse(raw) : null);
+    } catch (err) {
+      return normalize(null);
+    }
+  }
+
+  const state = load();
+  const view = { y: today.getFullYear(), m: today.getMonth() + 1 };
+  let selKey = todayKey;
+  let expanded = -1;
+  let addPart = '胸';
+
+  function persist() {
+    try {
+      const s = state.sessions[selKey];
+      if (s) s.updatedAt = Date.now();
+      localStorage.setItem(TKEY, JSON.stringify(state));
+    } catch (err) {
+      $('#tWarn').hidden = false;
+    }
+  }
+
+  function realSessions() {
+    return Object.keys(state.sessions)
+      .filter((k) => state.sessions[k].items.length)
+      .sort()
+      .map((k) => [k, state.sessions[k]]);
+  }
+
+  function lastSameType(type, before) {
+    const rows = realSessions().filter((r) => r[1].type === type && r[0] < before);
+    return rows.length ? rows[rows.length - 1] : null;
+  }
+
+  function lastSameAb(type, ab, before) {
+    const rows = realSessions().filter((r) => r[1].type === type && r[1].ab === ab && r[0] < before);
+    return rows.length ? rows[rows.length - 1] : null;
+  }
+
+  function suggestFor(key) {
+    const all = realSessions().filter((r) => r[0] < key);
+    if (!all.length) return { type: 'push', ab: 'A' };
+    const last = all[all.length - 1][1];
+    const type = ORDER[(ORDER.indexOf(last.type) + 1) % 3];
+    const prev = lastSameType(type, key);
+    return { type: type, ab: prev && prev[1].ab === 'A' ? 'B' : 'A' };
+  }
+
+  function cur() {
+    if (state.sessions[selKey]) return state.sessions[selKey];
+    const s = suggestFor(selKey);
+    return { type: s.type, ab: s.ab, items: [] };
+  }
+
+  function ensure() {
+    if (!state.sessions[selKey]) {
+      const s = suggestFor(selKey);
+      state.sessions[selKey] = { type: s.type, ab: s.ab, items: [] };
+    }
+    return state.sessions[selKey];
+  }
+
+  /* ---- 渲染：头部与日历 ---- */
+  function weekRange() {
+    const dow = (today.getDay() + 6) % 7;
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dow);
+    const startK = toKey(start);
+    return [startK, fromDayNum(dayNum(startK) + 6)];
+  }
+
+  function renderHead() {
+    $('#tSub').textContent = today.getFullYear() + '年' + (today.getMonth() + 1) + '月' +
+      today.getDate() + '日 ' + WD[today.getDay()] + ' · 推拉蹲 · AB 轮';
+    const range = weekRange();
+    let n = 0;
+    for (const k of Object.keys(state.sessions)) {
+      if (k >= range[0] && k <= range[1] && state.sessions[k].items.length) n += 1;
+    }
+    $('#tPill').textContent = '本周 ' + n + ' 练';
+  }
+
+  function renderCal() {
+    $('#tMonth').textContent = view.y + '年' + view.m + '月';
+    const lead = (new Date(view.y, view.m - 1, 1).getDay() + 6) % 7;
+    const dim = new Date(view.y, view.m, 0).getDate();
+    const todayN = dayNum(todayKey);
+    let html = '';
+    for (let i = 0; i < lead; i++) html += '<span class="blank"></span>';
+    for (let d = 1; d <= dim; d++) {
+      const key = keyOf(view.y, view.m, d);
+      const s = state.sessions[key];
+      const real = s && s.items.length;
+      const cls = ['tday'];
+      if (real) { cls.push('has'); cls.push(s.type); }
+      if (key === selKey) cls.push('sel');
+      if (key === todayKey) cls.push('today');
+      const dis = dayNum(key) > todayN ? ' disabled' : '';
+      const dot = real ? '<i class="dot ' + s.type + '"></i>' : '';
+      html += '<button type="button" class="' + cls.join(' ') + '" data-key="' + key + '"' + dis +
+        ' aria-label="' + key + '">' + d + dot + '</button>';
+    }
+    $('#tDays').innerHTML = html;
+  }
+
+  /* ---- 渲染：当天 ---- */
+  function summaryOf(sets) {
+    if (!sets || !sets.length) return '—';
+    const same = sets.every((s) => s[0] === sets[0][0] && s[1] === sets[0][1]);
+    if (same) return fmtW(sets[0][0]) + '×' + sets[0][1] + '×' + sets.length;
+    return sets.map((s) => fmtW(s[0]) + '×' + s[1]).join(' / ');
+  }
+
+  function prevItem(name) {
+    const rows = realSessions().filter((r) => r[0] < selKey);
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const it = rows[i][1].items.filter((x) => x.name === name)[0];
+      if (it) {
+        const best = it.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), it.sets[0]);
+        return { date: rows[i][0], best: best, n: it.sets.length };
+      }
+    }
+    return null;
+  }
+
+  function bestE1Before(name, before) {
+    let best = null;
+    for (const k of Object.keys(state.sessions)) {
+      if (k >= before) continue;
+      for (const it of state.sessions[k].items) {
+        if (it.name !== name) continue;
+        for (const st of it.sets) {
+          const v = e1(st);
+          if (!best || v > best.v) best = { v: v, set: st };
+        }
+      }
+    }
+    return best;
+  }
+
+  function itemPR(it) {
+    if (!it.sets.length) return null;
+    const best = bestE1Before(it.name, selKey);
+    if (!best) return null;
+    const top = it.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), it.sets[0]);
+    return e1(top) > best.v + 1e-9 ? { set: top, v: e1(top), old: best.v } : null;
+  }
+
+  function itemRow(it, i) {
+    const open = expanded === i;
+    const last = prevItem(it.name);
+    const pr = itemPR(it);
+    let lastTxt = '第一次做这个动作';
+    if (last) {
+      lastTxt = '上次 ' + last.date.slice(5).replace('-', '/') + '：' + fmtW(last.best[0]) + '×' +
+        last.best[1] + '×' + last.n;
+      lastTxt += last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次';
+    }
+    const ivol = it.sets.reduce((a, x) => a + x[0] * x[1], 0);
+    if (ivol) lastTxt += '；本次容量 ' + fmtVol(ivol);
+    const setsHtml = it.sets.map((x, si) =>
+      '<div class="setrow">' +
+        '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] + '" data-i="' + i + '" data-s="' + si +
+          '" data-f="w" aria-label="重量 kg">' +
+        '<span>kg ×</span>' +
+        '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] + '" data-i="' + i + '" data-s="' + si +
+          '" data-f="r" aria-label="次数">' +
+        '<span>次</span>' +
+        '<button type="button" data-act="delSet" data-i="' + i + '" data-s="' + si + '" aria-label="删掉这组">×</button>' +
+      '</div>'
+    ).join('');
+
+    return '<div class="item' + (open ? ' open' : '') + (pr ? ' pr' : '') + '">' +
+      '<button type="button" class="itemhead" data-act="toggle" data-i="' + i + '" aria-expanded="' + open + '">' +
+        '<span class="ipart">' + esc(it.part) + '</span>' +
+        '<span class="iname">' + esc(it.name) + '</span>' +
+        (pr ? '<span class="prbadge">🏆 PR</span>' : '') +
+        '<span class="isets">' + summaryOf(it.sets) + '</span>' +
+        '<span class="iedit">' + (open ? '收起' : '编辑') + '</span>' +
+      '</button>' +
+      (open ? '<div class="detail">' +
+        '<p class="last">' + esc(lastTxt) + '</p>' +
+        '<div class="sets">' + setsHtml + '</div>' +
+        '<div class="detailrow">' +
+          '<button type="button" class="mini" data-act="addSet" data-i="' + i + '">+ 加一组</button>' +
+          '<button type="button" class="mini" data-act="chart" data-i="' + i + '">趋势</button>' +
+          '<input class="note" data-i="' + i + '" data-f="note" value="' + esc(it.note) + '" placeholder="备注（可选）">' +
+          '<button type="button" class="mini danger" data-act="delItem" data-i="' + i + '">删除动作</button>' +
+        '</div>' +
+      '</div>' : '') +
+    '</div>';
+  }
+
+  function datalist(part) {
+    const names = {};
+    SEED.forEach((s) => { if (!part || s[1] === part) names[s[0]] = 1; });
+    Object.keys(state.exercises).forEach((n) => {
+      if (!part || state.exercises[n] === part) names[n] = 1;
+    });
+    return Object.keys(names).map((n) => '<option value="' + esc(n) + '">').join('');
+  }
+
+  function quickList(part) {
+    const names = {};
+    SEED.forEach((s) => { if (s[1] === part) names[s[0]] = 1; });
+    Object.keys(state.exercises).forEach((n) => {
+      if (state.exercises[n] === part) names[n] = 1;
+    });
+    return Object.keys(names).map((n) =>
+      '<button type="button" class="qchip" data-name="' + esc(n) + '">' + esc(n) + '</button>').join('');
+  }
+
+  function renderDay() {
+    const parts = selKey.split('-').map(Number);
+    const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+    const title = parts[1] + '月' + parts[2] + '日 ' + WD[dt.getDay()];
+
+    if (dayNum(selKey) > dayNum(todayKey)) {
+      $('#tDay').innerHTML = '<div class="dayhead"><div><h2>' + title + '</h2>' +
+        '<p class="sub">还没到这一天</p></div></div>';
+      return;
+    }
+
+    const s = cur();
+    const isDraft = !state.sessions[selKey];
+    const last = lastSameAb(s.type, s.ab, selKey) || lastSameType(s.type, selKey);
+    const gap = last ? dayNum(selKey) - dayNum(last[0]) : null;
+    const metaText = gap !== null
+      ? '上次' + TYPES[last[1].type].label + last[1].ab + '：' + gap + ' 天前'
+      : (isDraft ? '选好推 / 拉 / 蹲，在下面加第一个动作' : '这个类型还没有历史记录');
+
+    const chips = ORDER.map((t) =>
+      '<button type="button" class="tbtn' + (t === s.type ? ' on' : '') + '" data-type="' + t + '">' +
+        TYPES[t].label + '</button>'
+    ).join('');
+
+    const itemsHtml = s.items.map((it, i) => itemRow(it, i)).join('');
+
+    let vol = 0, setsN = 0;
+    s.items.forEach((it) => it.sets.forEach((x) => { setsN += 1; vol += x[0] * x[1]; }));
+    const pc = {};
+    s.items.forEach((it) => { pc[it.part] = (pc[it.part] || 0) + it.sets.length; });
+    const partList = PARTS.filter((p) => pc[p]).map((p) =>
+      '<div class="rrow"><span>' + p + '</span><b>' + pc[p] + ' 组</b></div>').join('');
+
+    const footBtns = [];
+    footBtns.push('<button type="button" class="mini" id="tplOpen">模板</button>');
+    if (last) {
+      footBtns.push('<button type="button" class="mini" id="copyLast">复制上次 ' +
+        TYPES[last[1].type].label + last[1].ab + '</button>');
+    }
+    if (!isDraft) footBtns.push('<button type="button" class="mini danger" id="clearDay">清空这天</button>');
+
+    $('#tDay').innerHTML =
+      '<div class="dayhead">' +
+        '<div><h2>' + title + '</h2><p class="sub">' + metaText + '</p></div>' +
+        '<div class="types">' + chips +
+          '<span class="ab">' + ['A', 'B'].map((a) =>
+            '<button type="button" data-ab="' + a + '" class="' + (a === s.ab ? 'on' : '') + '">' + a + '</button>'
+          ).join('') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="items">' +
+        (itemsHtml || '<p class="emptyday">还没有动作。先在下面选部位，再挑一个动作，或者复制上次同类型。</p>') +
+      '</div>' +
+      '<div class="partchips">' + PARTS.map((p) =>
+        '<button type="button" class="pchip' + (p === addPart ? ' on' : '') + '" data-p="' + p + '">' +
+        p + '</button>').join('') + '</div>' +
+      '<div class="addrow">' +
+        '<input id="exName" list="exList" placeholder="搜「' + addPart + '」动作，或直接输入" autocomplete="off">' +
+        '<datalist id="exList">' + datalist(addPart) + '</datalist>' +
+        '<input id="exW" type="number" step="0.5" min="0" inputmode="decimal" placeholder="kg">' +
+        '<input id="exR" type="number" step="1" min="1" inputmode="numeric" placeholder="次">' +
+        '<input id="exS" type="number" step="1" min="1" inputmode="numeric" value="3" placeholder="组">' +
+        '<button type="button" class="btn" id="exAdd">添加</button>' +
+      '</div>' +
+      '<div class="exquick" id="exQuick">' + quickList(addPart) + '</div>' +
+      '<p class="addhint" id="addHint">点动作直接填入，也可以手动输入。</p>' +
+      '<div class="daysum">' +
+        (s.items.length ? s.items.length + ' 个动作 · ' + setsN + ' 组 · 容量 ' + fmtVol(vol) : '今天还没记录') +
+      '</div>' +
+      (s.items.length ? '<div class="bodybox"><h4>这次练到</h4>' + bodySvg(sessionFill(s)) +
+        '<div class="rgrid">' + partList + '</div></div>' : '') +
+      (footBtns.length ? '<div class="dayfoot">' + footBtns.join('') + '</div>' : '');
+  }
+
+  /* ---- 渲染：本周部位 ---- */
+  function renderWeek() {
+    const range = weekRange();
+    const sets = {};
+    const vols = {};
+    let totalSets = 0, totalVol = 0, days = 0;
+    for (const k of Object.keys(state.sessions)) {
+      if (k < range[0] || k > range[1]) continue;
+      const s = state.sessions[k];
+      if (!s.items.length) continue;
+      days += 1;
+      s.items.forEach((it) => {
+        let v = 0;
+        it.sets.forEach((x) => { v += x[0] * x[1]; });
+        sets[it.part] = (sets[it.part] || 0) + it.sets.length;
+        vols[it.part] = (vols[it.part] || 0) + v;
+        totalSets += it.sets.length;
+        totalVol += v;
+      });
+    }
+    const maxVol = Math.max(1, ...PARTS.map((p) => vols[p] || 0));
+    const maxSets = Math.max(1, ...PARTS.map((p) => sets[p] || 0));
+    const useVol = totalVol > 0;
+    const rows = PARTS.map((p) => {
+      const n = sets[p] || 0;
+      const v = vols[p] || 0;
+      const w = Math.round(((useVol ? v / maxVol : n / maxSets)) * 100);
+      return '<div class="wrow"><span>' + p + '</span>' +
+        '<div class="wbar"><i style="width:' + w + '%"></i></div>' +
+        '<b>' + n + ' 组 · ' + fmtVol(v) + '</b></div>';
+    }).join('');
+    const head = totalSets
+      ? '<p class="weektotal">本周 ' + days + ' 练 · ' + totalSets + ' 组 · 容量 ' + fmtVol(totalVol) + '</p>'
+      : '<p class="weekhint">本周还没有训练记录</p>';
+    $('#tWeek').innerHTML = head + rows;
+  }
+
+  /* ---- 人体图 ---- */
+  function lastTrainedPart(part) {
+    let best = null;
+    for (const k of Object.keys(state.sessions)) {
+      if (k > todayKey) continue;
+      if (state.sessions[k].items.some((it) => it.part === part) && (!best || k > best)) best = k;
+    }
+    return best;
+  }
+
+  function recoveryOf(part) {
+    let load = 0;
+    for (const k of Object.keys(state.sessions)) {
+      if (k > todayKey) continue;
+      const age = dayNum(todayKey) - dayNum(k);
+      if (age > 10) continue;
+      let sets = 0, vol = 0;
+      state.sessions[k].items.forEach((it) => {
+        if (it.part !== part) return;
+        sets += it.sets.length;
+        it.sets.forEach((x) => { vol += x[0] * x[1]; });
+      });
+      if (!sets) continue;
+      load += (sets + vol / 4000) * Math.pow(0.5, age / 2.5);
+    }
+    return Math.max(0, Math.min(100, Math.round(100 - (load / 18) * 100)));
+  }
+
+  function recoveryColor(pct) {
+    if (pct >= 80) return '#22b573';
+    if (pct >= 60) return '#7fb84a';
+    if (pct >= 40) return '#e0b13a';
+    if (pct >= 20) return '#f08c2e';
+    return '#e5484d';
+  }
+
+  function sessionFill(s) {
+    const counts = {};
+    s.items.forEach((it) => { counts[it.part] = (counts[it.part] || 0) + it.sets.length; });
+    return (part) => {
+      const n = counts[part] || 0;
+      if (!n) return { fill: 'var(--muscle)', op: 1 };
+      return { fill: PART_COLORS[part] || '#e5484d', op: Math.min(0.95, 0.35 + n * 0.09) };
+    };
+  }
+
+  function muscles(list, fillOf) {
+    let out = '';
+    list.forEach((r) => {
+      const part = MUSCLE_PART[r[0]];
+      const f = part ? fillOf(part) : { fill: 'var(--body)', op: 1 };
+      const style = ' style="fill:' + f.fill + ';fill-opacity:' + f.op + '"';
+      const attrs = part ? ' data-part="' + part + '" title="' + part + '"' : '';
+      r[1].forEach((pts) => { out += '<polygon points="' + pts + '"' + style + attrs + '/>'; });
+    });
+    return out;
+  }
+
+  function bodySvg(fillOf) {
+    return '<svg class="bodymap" viewBox="0 0 209 234" role="img" aria-label="肌肉分布">' +
+      '<g>' + muscles(ANTERIOR_MU, fillOf) + '</g>' +
+      '<g transform="translate(109 0)">' + muscles(POSTERIOR_MU, fillOf) + '</g>' +
+      '<text class="figcap" x="50" y="230">正面</text>' +
+      '<text class="figcap" x="160" y="230">背面</text>' +
+      '</svg>';
+  }
+
+  function renderRecovery() {
+    const info = {};
+    PARTS.forEach((p) => {
+      const d = lastTrainedPart(p);
+      info[p] = {
+        days: d ? dayNum(todayKey) - dayNum(d) : null,
+        pct: d ? recoveryOf(p) : null,
+      };
+    });
+    const fillOf = (part) => {
+      const r = info[part];
+      if (!r || r.pct === null) return { fill: 'var(--muscle)', op: 1 };
+      return { fill: recoveryColor(r.pct), op: 0.92 };
+    };
+    const rows = realSessions().filter((r) => r[0] <= todayKey);
+    const lastRow = rows.length ? rows[rows.length - 1] : null;
+    let lastTxt = '还没有训练记录';
+    if (lastRow) {
+      const dd = dayNum(todayKey) - dayNum(lastRow[0]);
+      lastTxt = '上次训练 ' + lastRow[0].slice(5).replace('-', '/') + ' · ' +
+        (dd === 0 ? '今天' : dd + ' 天前');
+    }
+    lastTxt += ' · 点部位筛选';
+    const list = PARTS.map((p) => {
+      const r = info[p];
+      const t = r.days === null ? '未记录' : r.days === 0 ? '今天' : r.days === 1 ? '昨天' : r.days + ' 天前';
+      const txt = r.pct === null ? t : r.pct + '% · ' + t;
+      const color = r.pct === null ? '' : ' style="color:' + recoveryColor(r.pct) + '"';
+      return '<div class="rrow" data-part="' + p + '"><span>' + p + '</span><b' + color + '>' + txt + '</b></div>';
+    }).join('');
+    $('#tBody').innerHTML =
+      '<p class="bhint">' + lastTxt + '</p>' +
+      bodySvg(fillOf) +
+      '<div class="blegend">' +
+        '<span><i style="background:#22b573"></i>已恢复</span>' +
+        '<span><i style="background:#7fb84a"></i>基本恢复</span>' +
+        '<span><i style="background:#e0b13a"></i>一般</span>' +
+        '<span><i style="background:#f08c2e"></i>偏疲劳</span>' +
+        '<span><i style="background:#e5484d"></i>需要休息</span>' +
+      '</div>' +
+      '<div class="rgrid">' + list + '</div>';
+  }
+
+  /* ---- 动作趋势 ---- */
+  function spark(rows) {
+    if (rows.length < 2) return '<p class="muted">至少两次记录才会出现曲线</p>';
+    const W = 280, H = 90, P = 12;
+    const vs = rows.map((r) => r.v);
+    const min = Math.min(...vs), max = Math.max(...vs);
+    const span = max - min || 1;
+    const pts = rows.map((r, i) => {
+      const x = P + i * (W - 2 * P) / (rows.length - 1);
+      const y = H - P - (r.v - min) / span * (H - 2 * P);
+      return [x, y];
+    });
+    const poly = pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const dots = pts.map((p) =>
+      '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3" fill="#3b6fe0"/>').join('');
+    return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="1RM 趋势">' +
+      '<polyline points="' + poly + '" fill="none" stroke="#3b6fe0" stroke-width="2" stroke-linejoin="round"/>' +
+      dots + '</svg>';
+  }
+
+  function openChart(i) {
+    const it = cur().items[i];
+    if (!it) return;
+    const hist = [];
+    for (const k of Object.keys(state.sessions)) {
+      const s = state.sessions[k];
+      const x = s.items.filter((y) => y.name === it.name)[0];
+      if (!x || !x.sets.length) continue;
+      const best = x.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), x.sets[0]);
+      hist.push({ k: k, best: best, v: e1(best) });
+    }
+    hist.sort((a, b) => (a.k < b.k ? -1 : 1));
+    const pr = hist.reduce((m, r) => (r.v > m.v ? r : m), hist[0]);
+    $('#mTitle').textContent = it.name;
+    $('#mPr').textContent = hist.length + ' 次记录 · 估算 1RM 最高 ' + pr.v.toFixed(1) + ' kg（' + pr.k + '）';
+    $('#mChart').innerHTML = spark(hist.slice(-10));
+    $('#mList').innerHTML = hist.slice(-8).reverse().map((r) =>
+      '<div class="hist"><span>' + r.k.slice(5) + '</span><b>' + fmtW(r.best[0]) + '×' + r.best[1] +
+      '</b><span>e1RM ' + r.v.toFixed(1) + '</span></div>').join('');
+    $('#tModal').hidden = false;
+  }
+
+  /* ---- 操作 ---- */
+  function copyLast() {
+    const s = cur();
+    const last = lastSameAb(s.type, s.ab, selKey) || lastSameType(s.type, selKey);
+    if (!last) return;
+    const target = ensure();
+    if (target.items.length && !confirm('这会替换这天的动作，继续？')) return;
+    target.type = last[1].type;
+    target.ab = last[1].ab;
+    target.items = last[1].items.map((it) => ({
+      name: it.name,
+      part: it.part,
+      note: '',
+      sets: it.sets.map((x) => [x[0], x[1]]),
+    }));
+    expanded = -1;
+    persist();
+    renderAll();
+  }
+
+  function addExercise() {
+    const nameEl = $('#exName');
+    if (!nameEl) return;
+    const name = nameEl.value.trim().slice(0, 20);
+    if (!name) { nameEl.focus(); return; }
+    const w = Math.max(0, Number($('#exW').value) || 0);
+    const r = Math.max(1, Math.floor(Number($('#exR').value) || 8));
+    const n = Math.max(1, Math.floor(Number($('#exS').value) || 3));
+    const part = SEED_MAP.get(name) || state.exercises[name] || addPart;
+    const s = ensure();
+    const sets = [];
+    for (let i = 0; i < n; i++) sets.push([w, r]);
+    s.items.push({ name: name, part: part, note: '', sets: sets });
+    state.exercises[name] = part;
+    addPart = part;
+    expanded = s.items.length - 1;
+    persist();
+    renderAll();
+    const added = s.items[s.items.length - 1];
+    const pr = itemPR(added);
+    if (pr) {
+      showToast('🎉 ' + name + ' 新纪录 ' + fmtW(pr.set[0]) + '×' + pr.set[1] +
+        '（e1RM ' + pr.v.toFixed(1) + '）');
+    }
+    startRest();
+    const again = $('#exName');
+    if (again) { again.value = ''; again.focus(); }
+  }
+
+  function updateAddHints() {
+    const nameEl = $('#exName');
+    const wEl = $('#exW');
+    const rEl = $('#exR');
+    const hint = $('#addHint');
+    if (!nameEl) return;
+    const name = nameEl.value.trim();
+    const last = name ? prevItem(name) : null;
+    if (wEl) wEl.placeholder = last ? fmtW(last.best[0]) + '×' + last.best[1] : 'kg';
+    if (rEl) rEl.placeholder = last ? String(last.best[1]) : '次';
+    if (hint) {
+      if (last) {
+        hint.textContent = '上次「' + name + '」' + fmtW(last.best[0]) + '×' + last.best[1] + '×' + last.n +
+          (last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次');
+      } else if (name) {
+        hint.textContent = '「' + name + '」没有历史记录，先定个基准。';
+      } else {
+        hint.textContent = '点动作直接填入，也可以手动输入。';
+      }
+    }
+  }
+
+  function selectPart(part) {
+    if (PARTS.indexOf(part) === -1) return;
+    addPart = part;
+    refreshAdd();
+    const panel = $('#tDay');
+    if (panel && window.innerWidth < 840 && panel.scrollIntoView) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function refreshAdd() {
+    const chips = document.querySelectorAll('#tDay .pchip');
+    for (let i = 0; i < chips.length; i++) {
+      if (chips[i].dataset.p === addPart) chips[i].classList.add('on');
+      else chips[i].classList.remove('on');
+    }
+    const list = $('#exList');
+    if (list) list.innerHTML = datalist(addPart);
+    const quick = $('#exQuick');
+    if (quick) quick.innerHTML = quickList(addPart);
+    const name = $('#exName');
+    if (name) name.placeholder = '搜「' + addPart + '」动作，或直接输入';
+    updateAddHints();
+  }
+
+  /* ---- 组间休息 ---- */
+  let restEnd = 0;
+  let restIv = null;
+
+  function startRest(sec) {
+    const bar = $('#restBar');
+    if (!bar) return;
+    restEnd = Date.now() + (sec === undefined ? REST_SEC : sec) * 1000;
+    bar.hidden = false;
+    bar.classList.remove('done');
+    tickRest();
+    clearInterval(restIv);
+    restIv = setInterval(tickRest, 250);
+  }
+
+  function tickRest() {
+    const bar = $('#restBar');
+    if (!bar) return;
+    const left = Math.max(0, Math.round((restEnd - Date.now()) / 1000));
+    const t = $('#restTime');
+    if (t) t.textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+    if (left <= 0) {
+      clearInterval(restIv);
+      restIv = null;
+      bar.classList.add('done');
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try { navigator.vibrate(200); } catch (err) { /* 忽略 */ }
+      }
+      const endAt = restEnd;
+      setTimeout(() => { if (restEnd === endAt) bar.hidden = true; }, 4000);
+    }
+  }
+
+  function stopRest() {
+    clearInterval(restIv);
+    restIv = null;
+    const bar = $('#restBar');
+    if (bar) bar.hidden = true;
+  }
+
+  /* ---- 提示 ---- */
+  let toastTimer = null;
+  function showToast(msg) {
+    const el = $('#toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.classList.remove('show'); }, 2600);
+  }
+
+  /* ---- 训练模板 ---- */
+  function renderTpl() {
+    $('#tplList').innerHTML = ORDER.map((t) => {
+      const tpl = state.templates[t];
+      const items = tpl ? tpl.items : [];
+      const names = items.map((it) => esc(it.name)).join(' · ');
+      return '<div class="tplrow">' +
+        '<div class="tplhead"><b>' + TYPES[t].label + '日</b><span>' + items.length + ' 个动作</span></div>' +
+        (items.length ? '<p class="tplnames">' + names + '</p>' : '<p class="tplnames">还没有模板</p>') +
+        '<div class="tplbtns">' +
+          '<button type="button" class="mini" data-tpl-apply="' + t + '"' + (items.length ? '' : ' disabled') + '>套用</button>' +
+          '<button type="button" class="mini" data-tpl-save="' + t + '">用今天存为模板</button>' +
+          (items.length ? '<button type="button" class="mini danger" data-tpl-del="' + t + '">清除</button>' : '') +
+        '</div></div>';
+    }).join('');
+  }
+
+  function openTpl() {
+    renderTpl();
+    $('#tplModal').hidden = false;
+  }
+
+  function closeTpl() {
+    $('#tplModal').hidden = true;
+  }
+
+  function applyTemplate(t) {
+    const tpl = state.templates[t];
+    if (!tpl) return;
+    const s = ensure();
+    if (s.items.length && !confirm('这会替换这天的动作，继续？')) return;
+    s.type = t;
+    s.items = tpl.items.map((it) => ({
+      name: it.name,
+      part: it.part,
+      note: '',
+      sets: it.sets.map((x) => [x[0], x[1]]),
+    }));
+    persist();
+    renderAll();
+    closeTpl();
+    showToast('已套用 ' + TYPES[t].label + '日模板');
+  }
+
+  function saveTemplate(t) {
+    const s = state.sessions[selKey];
+    if (!s || !s.items.length) { showToast('这天还没有动作'); return; }
+    if (state.templates[t] && !confirm('覆盖「' + TYPES[t].label + '日」模板？')) return;
+    state.templates[t] = {
+      items: s.items.map((it) => ({
+        name: it.name,
+        part: it.part,
+        note: '',
+        sets: it.sets.map((x) => [x[0], x[1]]),
+      })),
+      updatedAt: Date.now(),
+    };
+    persist();
+    renderTpl();
+    showToast('已存为 ' + TYPES[t].label + '日模板');
+  }
+
+  function updateDaySum() {
+    const s = state.sessions[selKey];
+    if (!s) return;
+    let vol = 0, setsN = 0;
+    s.items.forEach((it) => it.sets.forEach((x) => { setsN += 1; vol += x[0] * x[1]; }));
+    const el = $('#tDay .daysum');
+    if (el) {
+      el.textContent = s.items.length
+        ? s.items.length + ' 个动作 · ' + setsN + ' 组 · 容量 ' + fmtVol(vol)
+        : '今天还没记录';
+    }
+  }
+
+  function renderAll() {
+    renderHead();
+    renderCal();
+    renderDay();
+    renderWeek();
+    renderRecovery();
+  }
+
+  /* ---- 事件 ---- */
+  $('#tDays').addEventListener('click', (e) => {
+    const b = e.target.closest('.tday');
+    if (!b || b.disabled) return;
+    selKey = b.dataset.key;
+    expanded = -1;
+    renderCal();
+    renderDay();
+  });
+
+  $('#tBody').addEventListener('click', (e) => {
+    const mp = e.target.closest('[data-part]');
+    if (mp) selectPart(mp.dataset.part);
+  });
+
+  $('#tDay').addEventListener('click', (e) => {
+    const mp = e.target.closest('[data-part]');
+    if (mp) { selectPart(mp.dataset.part); return; }
+
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    const act = btn.dataset.act;
+    if (act) {
+      const i = Number(btn.dataset.i);
+      if (act === 'toggle') { expanded = expanded === i ? -1 : i; renderDay(); return; }
+      if (act === 'addSet') {
+        const it = ensure().items[i];
+        if (it) { it.sets.push(it.sets[it.sets.length - 1].slice()); persist(); renderDay(); startRest(); }
+        return;
+      }
+      if (act === 'delSet') {
+        const it = ensure().items[i];
+        const si = Number(btn.dataset.s);
+        if (it && it.sets.length > 1) { it.sets.splice(si, 1); persist(); renderDay(); }
+        return;
+      }
+      if (act === 'delItem') {
+        const s = ensure();
+        if (s.items[i] && confirm('删除「' + s.items[i].name + '」？')) {
+          s.items.splice(i, 1);
+          expanded = -1;
+          persist();
+          renderAll();
+        }
+        return;
+      }
+      if (act === 'chart') { openChart(Number(btn.dataset.i)); return; }
+    }
+
+    if (btn.classList.contains('pchip')) {
+      addPart = btn.dataset.p;
+      refreshAdd();
+      return;
+    }
+
+    if (btn.classList.contains('qchip')) {
+      const nameEl = $('#exName');
+      if (nameEl) {
+        nameEl.value = btn.dataset.name;
+        updateAddHints();
+        const wEl = $('#exW');
+        if (wEl) wEl.focus();
+      }
+      return;
+    }
+
+    if (btn.classList.contains('tbtn')) {
+      const s = ensure();
+      s.type = btn.dataset.type;
+      const prev = lastSameType(s.type, selKey);
+      s.ab = prev ? (prev[1].ab === 'A' ? 'B' : 'A') : 'A';
+      persist();
+      renderAll();
+      return;
+    }
+
+    if (btn.dataset.ab) {
+      const s = ensure();
+      s.ab = btn.dataset.ab;
+      persist();
+      renderDay();
+      return;
+    }
+
+    if (btn.id === 'tplOpen') { openTpl(); return; }
+    if (btn.id === 'copyLast') { copyLast(); return; }
+    if (btn.id === 'clearDay') {
+      if (!confirm('清空这天的训练记录？')) return;
+      delete state.sessions[selKey];
+      expanded = -1;
+      persist();
+      renderAll();
+      return;
+    }
+    if (btn.id === 'exAdd') { addExercise(); return; }
+  });
+
+  $('#tDay').addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.id === 'exName') { updateAddHints(); return; }
+    const f = t.dataset ? t.dataset.f : '';
+    if (!f) return;
+    const s = state.sessions[selKey];
+    if (!s) return;
+    const i = Number(t.dataset.i);
+    const it = s.items[i];
+    if (!it) return;
+    if (f === 'note') { it.note = t.value.slice(0, 80); persist(); return; }
+    const si = Number(t.dataset.s);
+    if (!it.sets[si]) return;
+    let v = Number(t.value);
+    if (!isFinite(v)) return;
+    v = f === 'w' ? Math.max(0, v) : Math.max(1, Math.floor(v));
+    it.sets[si][f === 'w' ? 0 : 1] = v;
+    const row = t.closest ? t.closest('.item') : null;
+    if (row) {
+      const sum = row.querySelector('.isets');
+      if (sum) sum.textContent = summaryOf(it.sets);
+    }
+    updateDaySum();
+    persist();
+  });
+
+  $('#tDay').addEventListener('change', (e) => {
+    const t = e.target;
+    if (!t.dataset || (t.dataset.f !== 'w' && t.dataset.f !== 'r')) return;
+    const s = state.sessions[selKey];
+    if (!s) return;
+    const it = s.items[Number(t.dataset.i)];
+    if (!it) return;
+    const pr = itemPR(it);
+    if (pr) {
+      showToast('🎉 ' + it.name + ' 新纪录 ' + fmtW(pr.set[0]) + '×' + pr.set[1]);
+      renderDay();
+    }
+  });
+
+  $('#tDay').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.target.id === 'exName' || e.target.id === 'exW' ||
+        e.target.id === 'exR' || e.target.id === 'exS')) {
+      e.preventDefault();
+      addExercise();
+    }
+    if (e.key === 'Escape') $('#tModal').hidden = true;
+  });
+
+  $('#tPrev').addEventListener('click', () => {
+    view.m -= 1;
+    if (view.m < 1) { view.m = 12; view.y -= 1; }
+    syncSelection();
+    renderAll();
+  });
+  $('#tNext').addEventListener('click', () => {
+    view.m += 1;
+    if (view.m > 12) { view.m = 1; view.y += 1; }
+    syncSelection();
+    renderAll();
+  });
+
+  function syncSelection() {
+    if (selKey.indexOf(view.y + '-' + pad(view.m)) !== 0) {
+      selKey = (view.y === today.getFullYear() && view.m === today.getMonth() + 1)
+        ? todayKey : keyOf(view.y, view.m, 1);
+      expanded = -1;
+    }
+  }
+
+  $('#tClose').addEventListener('click', () => { $('#tModal').hidden = true; });
+  $('#tModal').addEventListener('click', (e) => {
+    if (e.target.id === 'tModal') $('#tModal').hidden = true;
+  });
+  $('#restSkip').addEventListener('click', stopRest);
+  $('#restPlus').addEventListener('click', () => { restEnd += 30000; tickRest(); });
+  $('#tplClose').addEventListener('click', closeTpl);
+  $('#tplModal').addEventListener('click', (e) => {
+    if (e.target.id === 'tplModal') closeTpl();
+  });
+  $('#tplList').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.tplApply) applyTemplate(b.dataset.tplApply);
+    else if (b.dataset.tplSave) saveTemplate(b.dataset.tplSave);
+    else if (b.dataset.tplDel) {
+      if (confirm('清除这个模板？')) {
+        delete state.templates[b.dataset.tplDel];
+        persist();
+        renderTpl();
+      }
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      $('#tModal').hidden = true;
+      $('#impModal').hidden = true;
+      $('#tplModal').hidden = true;
+    }
+  });
+
+  $('#tExport').addEventListener('click', () => {
+    let habits = null;
+    try {
+      const raw = JSON.parse(localStorage.getItem(HKEY) || 'null');
+      if (raw && Array.isArray(raw.habits)) habits = raw.habits;
+    } catch (err) { habits = null; }
+    const data = {
+      app: 'habit-calendar',
+      exportedAt: new Date().toISOString(),
+      habits: habits,
+      training: state,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'habit-training-' + todayKey + '.json';
+    a.click();
+    try { localStorage.setItem(EXPORT_KEY, String(Date.now())); } catch (err) { /* 忽略 */ }
+    renderBackupTip();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  /* ---- 导入与合并 ---- */
+  const PART_HINTS = [
+    ['Pallof', '核心'], ['卷腹', '核心'], ['举腿', '核心'], ['侧平板', '核心'], ['平板支撑', '核心'],
+    ['健腹', '核心'], ['转体', '核心'], ['登山', '核心'], ['死虫', '核心'],
+    ['鸟狗', '核心'], ['自行车', '核心'],
+    ['腿弯举', '腿'], ['腿屈伸', '腿'], ['罗马尼亚硬拉', '腿'], ['前蹲', '腿'], ['深蹲', '腿'],
+    ['静蹲', '腿'], ['腿举', '腿'], ['提踵', '腿'], ['髋内收', '腿'], ['髋外展', '腿'],
+    ['分腿', '腿'], ['弓步', '腿'], ['箭步', '腿'], ['侧步', '腿'], ['台阶', '腿'], ['臀', '腿'],
+    ['直立划船', '肩'], ['反向飞鸟', '肩'], ['推肩', '肩'], ['肩推', '肩'], ['推举', '肩'],
+    ['侧平举', '肩'], ['前平举', '肩'], ['后束', '肩'],
+    ['过顶', '臂'], ['双杠', '胸'], ['弯举', '臂'], ['下压', '臂'], ['窄距卧推', '臂'], ['臂屈伸', '臂'],
+    ['仰卧上拉', '胸'], ['卧推', '胸'], ['推胸', '胸'], ['飞鸟', '胸'], ['夹胸', '胸'], ['俯卧撑', '胸'],
+    ['引体', '背'], ['下拉', '背'], ['划船', '背'], ['硬拉', '背'], ['面拉', '背'], ['直臂', '背'],
+    ['山羊', '背'], ['耸肩', '背'], ['超人', '背'],
+  ];
+
+  function guessPart(name, type) {
+    for (const h of PART_HINTS) {
+      if (name.indexOf(h[0]) !== -1) return h[1];
+    }
+    return type === 'push' ? '胸' : type === 'pull' ? '背' : '腿';
+  }
+
+  function isChatGptExport(d) {
+    return Boolean(d && !d.training && Array.isArray(d.sessions) && d.sessions.length &&
+      d.sessions[0] && d.sessions[0].date && Array.isArray(d.sessions[0].exercises));
+  }
+
+  function convertChatGpt(d) {
+    const sessions = {};
+    const exercises = {};
+    for (const s of d.sessions) {
+      if (!s || !s.date || !s.split) continue;
+      const m = /^(Push|Pull|Legs)\s*([AB])?/i.exec(String(s.split));
+      if (!m) continue;
+      const type = m[1].toLowerCase();
+      const ab = (m[2] || 'A').toUpperCase();
+      const items = [];
+      for (const e of s.exercises || []) {
+        const name = String(e.exercise || '').trim().slice(0, 20);
+        if (!name) continue;
+        const wl = e.working_load || {};
+        const unit = wl.unit || 'kg';
+        const notes = [];
+        let w = 0;
+        if (typeof wl.value === 'number') {
+          if (wl.type === 'assistance') notes.push('辅助 ' + wl.value + 'kg');
+          else w = unit === 'lb' ? Math.round(wl.value * 0.4536 * 2) / 2 : wl.value;
+        }
+        if (e.notes) notes.push(String(e.notes));
+        const sets = [];
+        (e.sets || []).forEach((st, idx) => {
+          const reps = Number(st && st.reps);
+          if (!reps || reps < 1) return;
+          let load = w;
+          if (Array.isArray(e.per_set_load) && typeof e.per_set_load[idx] === 'number') {
+            load = unit === 'lb' ? Math.round(e.per_set_load[idx] * 0.4536 * 2) / 2 : e.per_set_load[idx];
+          }
+          sets.push([Math.max(0, load), Math.max(1, Math.floor(reps))]);
+        });
+        if (!sets.length) continue;
+        const part = guessPart(name, type);
+        items.push({ name: name, part: part, note: notes.join('；').slice(0, 80), sets: sets });
+        exercises[name] = part;
+      }
+      if (!items.length) continue;
+      if (sessions[s.date]) sessions[s.date].items = sessions[s.date].items.concat(items);
+      else sessions[s.date] = { type: type, ab: ab, items: items, updatedAt: 0 };
+    }
+    return { sessions: sessions, exercises: exercises };
+  }
+
+  let pending = null;
+
+  function readHabits() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(HKEY) || 'null');
+      return raw && Array.isArray(raw.habits) ? raw.habits : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function backupNeeded() {
+    try {
+      const hasData = Object.keys(state.sessions).length > 0 || readHabits().length > 0;
+      if (!hasData) return false;
+      const now = Date.now();
+      const snooze = Number(localStorage.getItem(SNOOZE_KEY) || 0);
+      if (snooze && now - snooze < WEEK_MS) return false;
+      const last = Number(localStorage.getItem(EXPORT_KEY) || 0);
+      return !last || now - last > WEEK_MS;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function renderBackupTip() {
+    const el = $('#backupTip');
+    if (!el) return;
+    el.hidden = !backupNeeded();
+  }
+
+  function mergeHabits(a, b) {
+    const map = new Map();
+    const put = (h) => {
+      if (!h || typeof h.name !== 'string') return;
+      const id = typeof h.id === 'string' && h.id ? h.id : 'x' + Math.random().toString(36).slice(2);
+      const cur = map.get(id);
+      if (!cur) { map.set(id, Object.assign({}, h, { id: id })); return; }
+      const newer = (Number(h.updatedAt) || 0) >= (Number(cur.updatedAt) || 0) ? h : cur;
+      map.set(id, Object.assign({}, newer, {
+        id: id,
+        days: Object.assign({}, cur.days || {}, h.days || {}),
+      }));
+    };
+    (a || []).forEach(put);
+    (b || []).forEach(put);
+    return Array.from(map.values());
+  }
+
+  function mergeTraining(local, incoming) {
+    const out = { sessions: {}, exercises: {} };
+    const ls = (local && local.sessions) || {};
+    const is = (incoming && incoming.sessions) || {};
+    for (const k of Object.keys(ls)) out.sessions[k] = ls[k];
+    for (const k of Object.keys(is)) {
+      const a = out.sessions[k];
+      const b = is[k];
+      if (!a) { out.sessions[k] = b; continue; }
+      out.sessions[k] = (Number(b.updatedAt) || 0) >= (Number(a.updatedAt) || 0) ? b : a;
+    }
+    out.exercises = Object.assign({}, (incoming && incoming.exercises) || {}, (local && local.exercises) || {});
+    out.templates = {};
+    const lt = (local && local.templates) || {};
+    const it = (incoming && incoming.templates) || {};
+    for (const t of ORDER) {
+      const a = lt[t];
+      const b = it[t];
+      out.templates[t] = !a ? b : (!b ? a : ((Number(b.updatedAt) || 0) >= (Number(a.updatedAt) || 0) ? b : a));
+    }
+    return normalize(out);
+  }
+
+  function applyImport(d, merge) {
+    if (d.habits) {
+      const list = merge ? mergeHabits(readHabits(), d.habits) : d.habits;
+      localStorage.setItem(HKEY, JSON.stringify({ habits: list }));
+    }
+    if (d.training) {
+      const inc = normalize(d.training);
+      const out = merge ? mergeTraining(state, inc) : inc;
+      localStorage.setItem(TKEY, JSON.stringify(out));
+    }
+    location.reload();
+  }
+
+  $('#tImport').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      let d = JSON.parse(await file.text());
+      let converted = false;
+      if (isChatGptExport(d)) {
+        d = { habits: null, training: convertChatGpt(d) };
+        converted = true;
+      }
+      if (!d || (!d.training && !d.habits)) throw new Error('不是这个应用导出的文件');
+      pending = d;
+      const ns = d.training && d.training.sessions ? Object.keys(d.training.sessions).length : 0;
+      const nh = Array.isArray(d.habits) ? d.habits.length : 0;
+      $('#impInfo').textContent = (converted
+        ? '识别到 ChatGPT 导出，已转换为 ' + ns + ' 天训练。'
+        : '文件里有 ' + ns + ' 天训练、' + nh + ' 个习惯。') +
+        '合并会保留两边记录，同一天以更新时间较新的为准。';
+      $('#impModal').hidden = false;
+    } catch (err) {
+      alert('导入失败：' + err.message);
+    }
+  });
+
+  $('#impMerge').addEventListener('click', () => {
+    if (!pending) return;
+    const d = pending;
+    pending = null;
+    applyImport(d, true);
+  });
+  $('#impReplace').addEventListener('click', () => {
+    if (!pending) return;
+    const d = pending;
+    pending = null;
+    applyImport(d, false);
+  });
+  $('#impCancel').addEventListener('click', () => {
+    pending = null;
+    $('#impModal').hidden = true;
+  });
+  $('#impModal').addEventListener('click', (e) => {
+    if (e.target.id === 'impModal') {
+      pending = null;
+      $('#impModal').hidden = true;
+    }
+  });
+
+  $('#backupNow').addEventListener('click', () => { $('#tExport').click(); });
+  $('#backupLater').addEventListener('click', () => {
+    try { localStorage.setItem(SNOOZE_KEY, String(Date.now())); } catch (err) { /* 忽略 */ }
+    renderBackupTip();
+  });
+
+  if ('serviceWorker' in navigator) {
+    const host = location.hostname;
+    const secure = location.protocol === 'https:' || host === 'localhost' || host === '127.0.0.1';
+    if (secure) {
+      try { navigator.serviceWorker.register('./sw.js').catch(() => {}); } catch (err) { /* 忽略 */ }
+    }
+  }
+  renderBackupTip();
+  renderAll();
+})();
+</script>
+</body>
+</html>
