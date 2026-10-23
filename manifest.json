@@ -1,0 +1,31 @@
+{
+  "name": "习惯打卡 · 训练日志",
+  "short_name": "打卡训练",
+  "description": "离线可用的习惯打卡与力量训练记录",
+  "lang": "zh-CN",
+  "start_url": "./habit-calendar.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#3b6fe0",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
