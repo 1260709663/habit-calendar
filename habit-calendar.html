@@ -169,10 +169,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .setrow{display:flex;align-items:center;gap:6px;margin:6px 0}
 .setrow input{width:72px;border:1px solid var(--line);border-radius:8px;background:transparent;
   color:var(--ink);padding:6px 8px;font:inherit;font-size:13px}
-.setrow input.rir{width:52px;font-size:12px;text-align:center;padding:6px 4px}
 @media (max-width:420px){
   .setrow input{width:62px}
-  .setrow input.rir{width:46px}
 }
 .setrow input:focus-visible,.note:focus-visible{outline:2px solid #4f8cff55;border-color:#4f8cff}
 .setrow span{font-size:12px;color:var(--muted)}
@@ -1068,8 +1066,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<span>次</span>' +
         '<input type="number" step="1" min="0" max="10" inputmode="numeric" class="rir" value="' +
           (x[2] === null || x[2] === undefined ? '' : x[2]) +
-          '" data-i="' + i + '" data-s="' + si + '" data-f="rir" aria-label="RIR 余力次数" title="RIR：还能做几次">' +
-        '<button type="button" data-act="delSet" data-i="' + i + '" data-s="' + si + '" aria-label="删掉这组">×</button>' +
+          '" data-i="' + i + '" data-s="' + si + '" data-f="rir" placeholder="RIR" aria-label="RIR 余力次数" title="RIR：还能做几次">' +
       '</div>'
     ).join('');
 
@@ -1086,6 +1083,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<div class="sets">' + setsHtml + '</div>' +
         '<div class="detailrow">' +
           '<button type="button" class="mini" data-act="addSet" data-i="' + i + '">+ 加一组</button>' +
+          '<button type="button" class="mini" data-act="delLastSet" data-i="' + i + '">− 减一组</button>' +
           '<button type="button" class="mini" data-act="chart" data-i="' + i + '">趋势</button>' +
           '<input class="note" data-i="' + i + '" data-f="note" value="' + esc(it.note) + '" placeholder="备注（可选）">' +
           '<button type="button" class="mini danger" data-act="delItem" data-i="' + i + '">删除动作</button>' +
@@ -1669,6 +1667,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         const it = ensure().items[i];
         const si = Number(btn.dataset.s);
         if (it && it.sets.length > 1) { it.sets.splice(si, 1); persist(); renderDay(); }
+        return;
+      }
+      if (act === 'delLastSet') {
+        const it = ensure().items[i];
+        if (it && it.sets.length > 1) { it.sets.pop(); persist(); renderDay(); }
         return;
       }
       if (act === 'delItem') {
