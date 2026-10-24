@@ -1,7 +1,7 @@
 /* 习惯打卡 · 训练日志 —— 离线缓存 Service Worker
  * 更新网页文件后，把下面的版本号 +1，用户下次联网打开就会换新缓存。
  */
-const CACHE = 'habit-app-v1';
+const CACHE = 'habit-app-v2';
 const ASSETS = [
   './index.html',
   './habit-calendar.html',
