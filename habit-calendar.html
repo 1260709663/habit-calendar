@@ -238,6 +238,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .restbar b{font-size:16px;font-variant-numeric:tabular-nums;min-width:46px;text-align:center}
 .rbtn{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;padding:5px 10px;font-size:12px}
 .rbtn:hover{background:rgba(255,255,255,.26)}
+.rbtn.primary{background:#3b6fe0}
+.rbtn.primary:hover{background:#4f8cff}
 .toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));
   transform:translateX(-50%) translateY(8px);background:#ffe9a8;color:#6d5400;border:1px solid #e0b13a;
   border-radius:12px;padding:9px 16px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;
@@ -385,8 +387,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     </div>
 
     <div class="restbar" id="restBar" hidden>
-      <span>组间休息</span>
+      <span id="restLabel">组间休息</span>
       <b id="restTime">1:30</b>
+      <button type="button" class="rbtn primary" id="restNext" hidden>下一组</button>
       <button type="button" class="rbtn" id="restPlus">+30s</button>
       <button type="button" class="rbtn" id="restSkip">跳过</button>
     </div>
@@ -1400,7 +1403,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       showToast('🎉 ' + name + ' 新纪录 ' + fmtW(pr.set[0]) + '×' + pr.set[1] +
         '（e1RM ' + pr.v.toFixed(1) + '）');
     }
-    startRest();
+    startRest(REST_SEC, sets.length);
     const again = $('#exName');
     if (again) { again.value = ''; again.focus(); }
   }
@@ -1455,13 +1458,27 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   /* ---- 组间休息 ---- */
   let restEnd = 0;
   let restIv = null;
+  let restSet = 0;
+  let restTotal = 0;
 
-  function startRest(sec) {
+  function updateRestUI() {
+    const label = $('#restLabel');
+    if (label) label.textContent = restTotal > 1 ? '休息 ' + restSet + '/' + restTotal : '组间休息';
+    const next = $('#restNext');
+    if (next) next.hidden = !(restTotal > 0 && restSet < restTotal);
+  }
+
+  function startRest(sec, sets) {
     const bar = $('#restBar');
     if (!bar) return;
+    if (typeof sets === 'number' && sets > 0) {
+      restTotal = sets;
+      restSet = 1;
+    }
     restEnd = Date.now() + (sec === undefined ? REST_SEC : sec) * 1000;
     bar.hidden = false;
     bar.classList.remove('done');
+    updateRestUI();
     tickRest();
     clearInterval(restIv);
     restIv = setInterval(tickRest, 250);
@@ -1477,12 +1494,23 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       clearInterval(restIv);
       restIv = null;
       bar.classList.add('done');
+      const more = restTotal > 0 && restSet < restTotal;
+      const label = $('#restLabel');
+      if (label) label.textContent = more ? '第 ' + restSet + ' 组完成' : '休息结束';
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         try { navigator.vibrate(200); } catch (err) { /* 忽略 */ }
       }
-      const endAt = restEnd;
-      setTimeout(() => { if (restEnd === endAt) bar.hidden = true; }, 4000);
+      if (!more) {
+        const endAt = restEnd;
+        setTimeout(() => { if (restEnd === endAt) bar.hidden = true; }, 4000);
+      }
     }
+  }
+
+  function nextRest() {
+    if (!(restTotal > 0 && restSet < restTotal)) return;
+    restSet += 1;
+    startRest(REST_SEC);
   }
 
   function stopRest() {
@@ -1490,6 +1518,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     restIv = null;
     const bar = $('#restBar');
     if (bar) bar.hidden = true;
+    restTotal = 0;
+    restSet = 0;
   }
 
   /* ---- 提示 ---- */
@@ -1545,6 +1575,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     renderAll();
     closeTpl();
     showToast('已套用 ' + TYPES[t].label + '日模板');
+    startRest(REST_SEC, s.items[0] ? s.items[0].sets.length : 0);
   }
 
   function saveTemplate(t) {
@@ -1614,7 +1645,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       if (act === 'toggle') { expanded = expanded === i ? -1 : i; renderDay(); return; }
       if (act === 'addSet') {
         const it = ensure().items[i];
-        if (it) { it.sets.push(it.sets[it.sets.length - 1].slice()); persist(); renderDay(); startRest(); }
+        if (it) { it.sets.push(it.sets[it.sets.length - 1].slice()); persist(); renderDay(); startRest(REST_SEC, it.sets.length); }
         return;
       }
       if (act === 'delSet') {
@@ -1759,6 +1790,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (e.target.id === 'tModal') $('#tModal').hidden = true;
   });
   $('#restSkip').addEventListener('click', stopRest);
+  $('#restNext').addEventListener('click', nextRest);
   $('#restPlus').addEventListener('click', () => { restEnd += 30000; tickRest(); });
   $('#tplClose').addEventListener('click', closeTpl);
   $('#tplModal').addEventListener('click', (e) => {
