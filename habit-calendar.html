@@ -169,6 +169,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .setrow{display:flex;align-items:center;gap:6px;margin:6px 0}
 .setrow input{width:72px;border:1px solid var(--line);border-radius:8px;background:transparent;
   color:var(--ink);padding:6px 8px;font:inherit;font-size:13px}
+.setrow input.rir{width:52px;font-size:12px;text-align:center;padding:6px 4px}
+@media (max-width:420px){
+  .setrow input{width:62px}
+  .setrow input.rir{width:46px}
+}
 .setrow input:focus-visible,.note:focus-visible{outline:2px solid #4f8cff55;border-color:#4f8cff}
 .setrow span{font-size:12px;color:var(--muted)}
 .setrow button{border:0;background:transparent;color:var(--muted);font-size:14px;padding:2px 4px}
@@ -231,12 +236,12 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .impbtns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .impbtns .btn{width:100%}
 .restbar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
-  display:flex;align-items:center;gap:10px;background:#1b2330;color:#fff;border-radius:999px;
-  padding:9px 16px;box-shadow:0 12px 30px -10px rgba(0,0,0,.45);z-index:60;font-size:13px}
+  display:flex;align-items:center;gap:8px;background:#1b2330;color:#fff;border-radius:999px;
+  padding:8px 12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.45);z-index:60;font-size:12px}
 .restbar[hidden]{display:none}
 .restbar.done{background:#1f7a4d}
 .restbar b{font-size:16px;font-variant-numeric:tabular-nums;min-width:46px;text-align:center}
-.rbtn{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;padding:5px 10px;font-size:12px}
+.rbtn{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;padding:4px 8px;font-size:11px}
 .rbtn:hover{background:rgba(255,255,255,.26)}
 .rbtn.primary{background:#3b6fe0}
 .rbtn.primary:hover{background:#4f8cff}
@@ -390,7 +395,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       <span id="restLabel">组间休息</span>
       <b id="restTime">1:30</b>
       <button type="button" class="rbtn primary" id="restNext" hidden>下一组</button>
-      <button type="button" class="rbtn" id="restPlus">+30s</button>
+      <button type="button" class="rbtn" id="restMinus">−15s</button>
+      <button type="button" class="rbtn" id="restPlus">+15s</button>
       <button type="button" class="rbtn" id="restSkip">跳过</button>
     </div>
     <div class="toast" id="toast"></div>
@@ -833,8 +839,12 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         for (const it of v.items) {
           if (!it || typeof it.name !== 'string') continue;
           const sets = (Array.isArray(it.sets) ? it.sets : [])
-            .filter((s) => Array.isArray(s) && s.length === 2)
-            .map((s) => [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1))]);
+            .filter((s) => Array.isArray(s) && s.length >= 2)
+            .map((s) => {
+              const rir = s.length > 2 && s[2] !== null && s[2] !== '' && isFinite(Number(s[2]))
+                ? Math.max(0, Math.min(10, Math.floor(Number(s[2])))) : null;
+              return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir];
+            });
           if (!sets.length) continue;
           items.push({
             name: it.name.slice(0, 20),
@@ -860,8 +870,12 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         for (const it of v.items) {
           if (!it || typeof it.name !== 'string') continue;
           const sets = (Array.isArray(it.sets) ? it.sets : [])
-            .filter((s) => Array.isArray(s) && s.length === 2)
-            .map((s) => [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1))]);
+            .filter((s) => Array.isArray(s) && s.length >= 2)
+            .map((s) => {
+              const rir = s.length > 2 && s[2] !== null && s[2] !== '' && isFinite(Number(s[2]))
+                ? Math.max(0, Math.min(10, Math.floor(Number(s[2])))) : null;
+              return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir];
+            });
           if (!sets.length) continue;
           items.push({
             name: it.name.slice(0, 20),
@@ -1052,6 +1066,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] + '" data-i="' + i + '" data-s="' + si +
           '" data-f="r" aria-label="次数">' +
         '<span>次</span>' +
+        '<input type="number" step="1" min="0" max="10" inputmode="numeric" class="rir" value="' +
+          (x[2] === null || x[2] === undefined ? '' : x[2]) +
+          '" data-i="' + i + '" data-s="' + si + '" data-f="rir" aria-label="RIR 余力次数" title="RIR：还能做几次">' +
         '<button type="button" data-act="delSet" data-i="' + i + '" data-s="' + si + '" aria-label="删掉这组">×</button>' +
       '</div>'
     ).join('');
@@ -1372,7 +1389,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       name: it.name,
       part: it.part,
       note: '',
-      sets: it.sets.map((x) => [x[0], x[1]]),
+      sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2]]),
     }));
     expanded = -1;
     persist();
@@ -1390,7 +1407,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const part = SEED_MAP.get(name) || state.exercises[name] || addPart;
     const s = ensure();
     const sets = [];
-    for (let i = 0; i < n; i++) sets.push([w, r]);
+    for (let i = 0; i < n; i++) sets.push([w, r, null]);
     s.items.push({ name: name, part: part, note: '', sets: sets });
     state.exercises[name] = part;
     addPart = part;
@@ -1569,7 +1586,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       name: it.name,
       part: it.part,
       note: '',
-      sets: it.sets.map((x) => [x[0], x[1]]),
+      sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2]]),
     }));
     persist();
     renderAll();
@@ -1587,7 +1604,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         name: it.name,
         part: it.part,
         note: '',
-        sets: it.sets.map((x) => [x[0], x[1]]),
+        sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2]]),
       })),
       updatedAt: Date.now(),
     };
@@ -1728,6 +1745,15 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (f === 'note') { it.note = t.value.slice(0, 80); persist(); return; }
     const si = Number(t.dataset.s);
     if (!it.sets[si]) return;
+    if (f === 'rir') {
+      const raw = t.value.trim();
+      if (raw === '') { it.sets[si][2] = null; persist(); return; }
+      const n = Number(raw);
+      if (!isFinite(n)) return;
+      it.sets[si][2] = Math.max(0, Math.min(10, Math.floor(n)));
+      persist();
+      return;
+    }
     let v = Number(t.value);
     if (!isFinite(v)) return;
     v = f === 'w' ? Math.max(0, v) : Math.max(1, Math.floor(v));
@@ -1791,7 +1817,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   });
   $('#restSkip').addEventListener('click', stopRest);
   $('#restNext').addEventListener('click', nextRest);
-  $('#restPlus').addEventListener('click', () => { restEnd += 30000; tickRest(); });
+  $('#restMinus').addEventListener('click', () => {
+    restEnd = Math.max(Date.now(), restEnd - 15000);
+    tickRest();
+  });
+  $('#restPlus').addEventListener('click', () => { restEnd += 15000; tickRest(); });
   $('#tplClose').addEventListener('click', closeTpl);
   $('#tplModal').addEventListener('click', (e) => {
     if (e.target.id === 'tplModal') closeTpl();
@@ -1897,7 +1927,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           if (Array.isArray(e.per_set_load) && typeof e.per_set_load[idx] === 'number') {
             load = unit === 'lb' ? Math.round(e.per_set_load[idx] * 0.4536 * 2) / 2 : e.per_set_load[idx];
           }
-          sets.push([Math.max(0, load), Math.max(1, Math.floor(reps))]);
+          const rawRir = st ? st.rir : null;
+          const numRir = typeof rawRir === 'number' ? rawRir
+            : (typeof rawRir === 'string' && /^\d+(\.\d+)?$/.test(rawRir) ? Number(rawRir) : NaN);
+          const rir = isFinite(numRir) ? Math.max(0, Math.min(10, Math.floor(numRir))) : null;
+          sets.push([Math.max(0, load), Math.max(1, Math.floor(reps)), rir]);
         });
         if (!sets.length) continue;
         const part = guessPart(name, type);
