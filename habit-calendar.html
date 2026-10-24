@@ -117,19 +117,15 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .calbar h2{font-size:15px;min-width:110px;text-align:center;font-variant-numeric:tabular-nums}
 .tday{position:relative;height:40px;border:0;border-radius:9px;background:var(--cell);font-size:13px;
   font-variant-numeric:tabular-nums;padding:0;transition:background .1s,box-shadow .1s}
-.tday.push{background:color-mix(in srgb,#4f8cff 16%,var(--cell))}
-.tday.pull{background:color-mix(in srgb,#22b573 16%,var(--cell))}
-.tday.legs{background:color-mix(in srgb,#f08c2e 18%,var(--cell))}
 .tday:not(:disabled):hover{box-shadow:inset 0 0 0 2px #4f8cff}
 .tday.today{box-shadow:inset 0 0 0 2px var(--ink)}
 .tday.sel{outline:2px solid #3b6fe0;outline-offset:1px}
 .tday .dot{position:absolute;left:50%;bottom:5px;transform:translateX(-50%)}
 .tday:disabled{opacity:.3}
 .cal .blank{aspect-ratio:auto;height:40px}
-.legend{display:flex;gap:14px;justify-content:center;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
 .legend span{display:flex;align-items:center;gap:5px}
-.dot{display:inline-block;width:6px;height:6px;border-radius:50%}
-.dot.push{background:#4f8cff}.dot.pull{background:#22b573}.dot.legs{background:#f08c2e}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .week{padding:14px 16px;margin-top:14px}
 .week h3{font-size:14px;margin-bottom:10px}
 .wrow{display:grid;grid-template-columns:26px 1fr 104px;align-items:center;gap:8px;margin:7px 0;font-size:12px}
@@ -145,9 +141,29 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .tbtn{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 14px;
   font-size:13px;font-weight:600;color:var(--muted)}
 .tbtn.on{color:#fff;border-color:transparent}
-.tbtn.on[data-type="push"]{background:#4f8cff}
-.tbtn.on[data-type="pull"]{background:#22b573}
-.tbtn.on[data-type="legs"]{background:#f08c2e}
+.tedit{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;
+  padding:5px 10px;font-size:12px;line-height:1.3;flex:none}
+.tedit:hover{border-color:#3b6fe0;color:#3b6fe0}
+.abrow{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.abrow b{font-size:13px;font-weight:500;display:block}
+.abrow span{font-size:11.5px;color:var(--muted);display:block;margin-top:2px;line-height:1.45}
+.switch{width:44px;height:26px;border-radius:99px;border:0;background:var(--cell);position:relative;flex:none;
+  transition:background .15s;padding:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.switch[aria-pressed="true"]{background:#3b6fe0}
+.switch[aria-pressed="true"]::after{transform:translateX(18px)}
+.prow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--line);
+  border-radius:12px;padding:8px 10px;margin-top:8px}
+.prow input{border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);
+  padding:6px 8px;font:inherit;font-size:13px;width:110px;flex:none}
+.prow input:focus-visible{outline:2px solid #4f8cff55;border-color:#4f8cff}
+.prow .pbtn{border:0;background:transparent;color:var(--muted);font-size:14px;padding:2px 5px;flex:none}
+.prow .pbtn:hover{color:#3b6fe0}
+.pdots{display:flex;gap:4px;flex-wrap:wrap;flex:1 0 100%;margin-top:6px}
+.pdot{width:18px;height:18px;border-radius:50%;border:0;padding:0;background:var(--pc);opacity:.4}
+.pdot[aria-pressed="true"]{opacity:1;box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--pc)}
 .ab{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-left:2px}
 .ab button{border:0;background:transparent;padding:5px 10px;font-size:12px;font-weight:600;color:var(--muted)}
 .ab button.on{background:var(--ink);color:var(--card)}
@@ -170,11 +186,20 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .setrow input{width:72px;border:1px solid var(--line);border-radius:8px;background:transparent;
   color:var(--ink);padding:6px 8px;font:inherit;font-size:13px}
 @media (max-width:420px){
-  .setrow input{width:62px}
+  .setrow input{width:58px}
+  .setrow{gap:5px}
+  .setrow .setcheck{width:24px;height:24px;margin-left:0}
 }
 .setrow input:focus-visible,.note:focus-visible{outline:2px solid #4f8cff55;border-color:#4f8cff}
 .setrow span{font-size:12px;color:var(--muted)}
 .setrow button{border:0;background:transparent;color:var(--muted);font-size:14px;padding:2px 4px}
+.setrow .setcheck{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);
+  background:transparent;display:grid;place-items:center;flex:none;padding:0;
+  color:transparent;font-size:13px;line-height:1;margin-left:2px}
+.setrow .setcheck:hover{border-color:#22b573}
+.setrow .setcheck[aria-pressed="true"]{background:#22b573;border-color:#22b573;color:#fff}
+.setrow.done input{opacity:.5}
+.setrow.done span{opacity:.55}
 .detailrow{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
 .mini{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:4px 10px;
   font-size:12px;color:var(--muted)}
@@ -339,7 +364,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           </div>
           <div class="dow" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
           <div class="days" id="tDays"></div>
-          <div class="legend"><span><i class="dot push"></i>推</span><span><i class="dot pull"></i>拉</span><span><i class="dot legs"></i>蹲</span></div>
+          <div class="legend" id="tLegend"></div>
         </section>
         <section class="card-panel week">
           <h3>本周部位</h3>
@@ -386,6 +411,38 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         <h3>训练模板</h3>
         <p class="mpr">套用预设动作，或把今天存成模板。</p>
         <div id="tplList"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="planModal" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="训练日设置">
+        <button class="mclose" id="planClose" type="button" aria-label="关闭">✕</button>
+        <h3>训练日</h3>
+        <p class="mpr">名字随你起，数量随你定。日历上的颜色和轮转顺序都跟着这里走。</p>
+        <div class="abrow">
+          <div><b>A/B 轮转</b><span>开启后每天要选 A 或 B；不练 AB 轮就关掉，界面上不再出现。</span></div>
+          <button type="button" class="switch" id="abSwitch" aria-pressed="true" aria-label="启用 A/B 轮转"></button>
+        </div>
+        <div id="planList"></div>
+        <div class="tplbtns"><button type="button" class="mini" id="planAdd">+ 添加一个训练日</button></div>
+      </div>
+    </div>
+
+    <div class="modal" id="tplEditModal" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="编辑模板">
+        <button class="mclose" id="teClose" type="button" aria-label="关闭">✕</button>
+        <h3 id="teTitle">编辑模板</h3>
+        <p class="mpr">模板只是动作清单，不记录实际完成情况。</p>
+        <div id="teList"></div>
+        <div class="partchips" id="teParts"></div>
+        <div class="addrow">
+          <input id="teName" list="teExList" placeholder="搜动作，或直接输入" autocomplete="off">
+          <datalist id="teExList"></datalist>
+          <input id="teW" type="number" step="0.5" min="0" inputmode="decimal" placeholder="kg">
+          <input id="teR" type="number" step="1" min="1" inputmode="numeric" placeholder="次">
+          <input id="teS" type="number" step="1" min="1" inputmode="numeric" value="3" placeholder="组">
+          <button type="button" class="btn" id="teAdd">添加</button>
+        </div>
       </div>
     </div>
 
@@ -709,12 +766,22 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   const EXPORT_KEY = 'gym-last-export';
   const SNOOZE_KEY = 'gym-backup-snooze';
   const WEEK_MS = 7 * 86400000;
-  const TYPES = {
-    push: { label: '推', color: '#4f8cff' },
-    pull: { label: '拉', color: '#22b573' },
-    legs: { label: '蹲', color: '#f08c2e' },
-  };
-  const ORDER = ['push', 'pull', 'legs'];
+  const DEFAULT_PLAN = [
+    { id: 'push', label: '推', color: '#4f8cff' },
+    { id: 'pull', label: '拉', color: '#22b573' },
+    { id: 'legs', label: '蹲', color: '#f08c2e' },
+  ];
+  const PLAN_COLORS = ['#4f8cff', '#22b573', '#f08c2e', '#9b6bff', '#e05a8f', '#12a8b8', '#e0b13a', '#7c8798'];
+  let TYPES = {};
+  let ORDER = [];
+  let AB_ON = true;
+  function syncPlan() {
+    ORDER = state.plan.map((p) => p.id);
+    TYPES = {};
+    state.plan.forEach((p) => { TYPES[p.id] = p; });
+  }
+  const colorOf = (id) => (TYPES[id] && TYPES[id].color) || '#7c8798';
+  const labelOf = (id) => (TYPES[id] && TYPES[id].label) || id;
   const PARTS = ['胸', '背', '腿', '肩', '臂', '核心'];
   const SEED = [
     // 胸
@@ -829,8 +896,26 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const sessions = {};
     const exercises = {};
     const templates = {};
+
+    const plan = [];
+    const seen = {};
+    if (d && Array.isArray(d.plan)) {
+      d.plan.forEach((p) => {
+        if (!p || typeof p.id !== 'string') return;
+        const id = p.id.trim().slice(0, 20);
+        if (!/^[A-Za-z0-9_-]{1,20}$/.test(id) || seen[id]) return;
+        seen[id] = 1;
+        plan.push({
+          id: id,
+          label: (typeof p.label === 'string' && p.label.trim() ? p.label.trim() : id).slice(0, 6),
+          color: /^#[0-9a-f]{6}$/i.test(p.color || '') ? p.color : PLAN_COLORS[plan.length % PLAN_COLORS.length],
+        });
+      });
+    }
+    const abOn = !(d && d.abOn === false);
+
     if (d && d.templates && typeof d.templates === 'object') {
-      for (const t of ORDER) {
+      for (const t of Object.keys(d.templates)) {
         const v = d.templates[t];
         if (!v || !Array.isArray(v.items)) continue;
         const items = [];
@@ -841,7 +926,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
             .map((s) => {
               const rir = s.length > 2 && s[2] !== null && s[2] !== '' && isFinite(Number(s[2]))
                 ? Math.max(0, Math.min(10, Math.floor(Number(s[2])))) : null;
-              return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir];
+              return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir, s.length > 3 ? Boolean(s[3]) : false];
             });
           if (!sets.length) continue;
           items.push({
@@ -872,7 +957,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
             .map((s) => {
               const rir = s.length > 2 && s[2] !== null && s[2] !== '' && isFinite(Number(s[2]))
                 ? Math.max(0, Math.min(10, Math.floor(Number(s[2])))) : null;
-              return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir];
+              return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir, s.length > 3 ? Boolean(s[3]) : false];
             });
           if (!sets.length) continue;
           items.push({
@@ -883,15 +968,33 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           });
         }
         if (!items.length) continue;
+        const kind = String(v.type || '').trim().slice(0, 20);
+        if (!kind) continue;
         sessions[k] = {
-          type: ORDER.indexOf(v.type) !== -1 ? v.type : 'push',
-          ab: v.ab === 'B' ? 'B' : 'A',
+          type: kind,
+          ab: abOn ? (v.ab === 'B' ? 'B' : 'A') : null,
           items: items,
           updatedAt: Number(v.updatedAt) || 0,
         };
       }
     }
-    return { sessions: sessions, exercises: exercises, templates: templates };
+    if (!plan.length) DEFAULT_PLAN.forEach((p) => plan.push(Object.assign({}, p)));
+    const ids = {};
+    plan.forEach((p) => { ids[p.id] = 1; });
+    Object.keys(sessions).forEach((k) => {
+      const t = sessions[k].type;
+      if (!ids[t]) {
+        ids[t] = 1;
+        plan.push({ id: t, label: t.slice(0, 6), color: PLAN_COLORS[plan.length % PLAN_COLORS.length] });
+      }
+    });
+    Object.keys(templates).forEach((t) => {
+      if (!ids[t]) {
+        ids[t] = 1;
+        plan.push({ id: t, label: t.slice(0, 6), color: PLAN_COLORS[plan.length % PLAN_COLORS.length] });
+      }
+    });
+    return { plan: plan, abOn: abOn, sessions: sessions, exercises: exercises, templates: templates };
   }
 
   function load() {
@@ -904,6 +1007,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   }
 
   const state = load();
+  AB_ON = state.abOn;
+  syncPlan();
   const view = { y: today.getFullYear(), m: today.getMonth() + 1 };
   let selKey = todayKey;
   let expanded = -1;
@@ -938,9 +1043,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
   function suggestFor(key) {
     const all = realSessions().filter((r) => r[0] < key);
-    if (!all.length) return { type: 'push', ab: 'A' };
+    if (!all.length) return { type: ORDER[0], ab: AB_ON ? 'A' : null };
     const last = all[all.length - 1][1];
-    const type = ORDER[(ORDER.indexOf(last.type) + 1) % 3];
+    const type = ORDER[(ORDER.indexOf(last.type) + 1) % ORDER.length];
+    if (!AB_ON) return { type: type, ab: null };
     const prev = lastSameType(type, key);
     return { type: type, ab: prev && prev[1].ab === 'A' ? 'B' : 'A' };
   }
@@ -969,7 +1075,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
   function renderHead() {
     $('#tSub').textContent = today.getFullYear() + '年' + (today.getMonth() + 1) + '月' +
-      today.getDate() + '日 ' + WD[today.getDay()] + ' · 推拉蹲 · AB 轮';
+      today.getDate() + '日 ' + WD[today.getDay()] + ' · ' +
+      state.plan.map((p) => p.label).join('/') + (AB_ON ? ' · AB 轮' : '');
     const range = weekRange();
     let n = 0;
     for (const k of Object.keys(state.sessions)) {
@@ -990,15 +1097,24 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       const s = state.sessions[key];
       const real = s && s.items.length;
       const cls = ['tday'];
-      if (real) { cls.push('has'); cls.push(s.type); }
+      if (real) cls.push('has');
       if (key === selKey) cls.push('sel');
       if (key === todayKey) cls.push('today');
       const dis = dayNum(key) > todayN ? ' disabled' : '';
-      const dot = real ? '<i class="dot ' + s.type + '"></i>' : '';
-      html += '<button type="button" class="' + cls.join(' ') + '" data-key="' + key + '"' + dis +
+      const tint = real ? ' style="background:color-mix(in srgb,' + colorOf(s.type) + ' 17%,var(--cell))"' : '';
+      const dot = real ? '<i class="dot" style="background:' + colorOf(s.type) + '"></i>' : '';
+      html += '<button type="button" class="' + cls.join(' ') + '" data-key="' + key + '"' + dis + tint +
         ' aria-label="' + key + '">' + d + dot + '</button>';
     }
     $('#tDays').innerHTML = html;
+    renderLegend();
+  }
+
+  function renderLegend() {
+    const el = $('#tLegend');
+    if (!el) return;
+    el.innerHTML = state.plan.map((p) =>
+      '<span><i class="dot" style="background:' + esc(p.color) + '"></i>' + esc(p.label) + '</span>').join('');
   }
 
   /* ---- 渲染：当天 ---- */
@@ -1057,7 +1173,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const ivol = it.sets.reduce((a, x) => a + x[0] * x[1], 0);
     if (ivol) lastTxt += '；本次容量 ' + fmtVol(ivol);
     const setsHtml = it.sets.map((x, si) =>
-      '<div class="setrow">' +
+      '<div class="setrow' + (x[3] ? ' done' : '') + '">' +
         '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] + '" data-i="' + i + '" data-s="' + si +
           '" data-f="w" aria-label="重量 kg">' +
         '<span>kg ×</span>' +
@@ -1067,6 +1183,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<input type="number" step="1" min="0" max="10" inputmode="numeric" class="rir" value="' +
           (x[2] === null || x[2] === undefined ? '' : x[2]) +
           '" data-i="' + i + '" data-s="' + si + '" data-f="rir" placeholder="RIR" aria-label="RIR 余力次数" title="RIR：还能做几次">' +
+        '<button type="button" class="setcheck" data-act="checkSet" data-i="' + i + '" data-s="' + si +
+          '" aria-pressed="' + (x[3] ? 'true' : 'false') + '" aria-label="打勾并开始组间休息" title="做完了 → 开始组间休息">' +
+          (x[3] ? '✓' : '') + '</button>' +
       '</div>'
     ).join('');
 
@@ -1127,12 +1246,13 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const last = lastSameAb(s.type, s.ab, selKey) || lastSameType(s.type, selKey);
     const gap = last ? dayNum(selKey) - dayNum(last[0]) : null;
     const metaText = gap !== null
-      ? '上次' + TYPES[last[1].type].label + last[1].ab + '：' + gap + ' 天前'
-      : (isDraft ? '选好推 / 拉 / 蹲，在下面加第一个动作' : '这个类型还没有历史记录');
+      ? '上次' + labelOf(last[1].type) + (AB_ON ? (last[1].ab || '') : '') + '：' + gap + ' 天前'
+      : (isDraft ? '选好训练日，在下面加第一个动作' : '这个类型还没有历史记录');
 
     const chips = ORDER.map((t) =>
-      '<button type="button" class="tbtn' + (t === s.type ? ' on' : '') + '" data-type="' + t + '">' +
-        TYPES[t].label + '</button>'
+      '<button type="button" class="tbtn' + (t === s.type ? ' on' : '') + '" data-type="' + esc(t) + '"' +
+      (t === s.type ? ' style="background:' + esc(colorOf(t)) + '"' : '') + '>' +
+        esc(labelOf(t)) + '</button>'
     ).join('');
 
     const itemsHtml = s.items.map((it, i) => itemRow(it, i)).join('');
@@ -1148,7 +1268,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     footBtns.push('<button type="button" class="mini" id="tplOpen">模板</button>');
     if (last) {
       footBtns.push('<button type="button" class="mini" id="copyLast">复制上次 ' +
-        TYPES[last[1].type].label + last[1].ab + '</button>');
+        labelOf(last[1].type) + (last[1].ab || '') + '</button>');
     }
     if (!isDraft) footBtns.push('<button type="button" class="mini danger" id="clearDay">清空这天</button>');
 
@@ -1156,9 +1276,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       '<div class="dayhead">' +
         '<div><h2>' + title + '</h2><p class="sub">' + metaText + '</p></div>' +
         '<div class="types">' + chips +
-          '<span class="ab">' + ['A', 'B'].map((a) =>
+          (AB_ON ? '<span class="ab">' + ['A', 'B'].map((a) =>
             '<button type="button" data-ab="' + a + '" class="' + (a === s.ab ? 'on' : '') + '">' + a + '</button>'
-          ).join('') + '</span>' +
+          ).join('') + '</span>' : '') +
+          '<button type="button" class="tedit" id="planEdit" aria-label="编辑训练日">✎ 编辑</button>' +
         '</div>' +
       '</div>' +
       '<div class="items">' +
@@ -1405,7 +1526,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const part = SEED_MAP.get(name) || state.exercises[name] || addPart;
     const s = ensure();
     const sets = [];
-    for (let i = 0; i < n; i++) sets.push([w, r, null]);
+    for (let i = 0; i < n; i++) sets.push([w, r, null, false]);
     s.items.push({ name: name, part: part, note: '', sets: sets });
     state.exercises[name] = part;
     addPart = part;
@@ -1418,7 +1539,6 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       showToast('🎉 ' + name + ' 新纪录 ' + fmtW(pr.set[0]) + '×' + pr.set[1] +
         '（e1RM ' + pr.v.toFixed(1) + '）');
     }
-    startRest(REST_SEC, sets.length);
     const again = $('#exName');
     if (again) { again.value = ''; again.focus(); }
   }
@@ -1489,6 +1609,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (typeof sets === 'number' && sets > 0) {
       restTotal = sets;
       restSet = 1;
+    } else {
+      restTotal = 0;
+      restSet = 0;
     }
     restEnd = Date.now() + (sec === undefined ? REST_SEC : sec) * 1000;
     bar.hidden = false;
@@ -1555,10 +1678,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       const items = tpl ? tpl.items : [];
       const names = items.map((it) => esc(it.name)).join(' · ');
       return '<div class="tplrow">' +
-        '<div class="tplhead"><b>' + TYPES[t].label + '日</b><span>' + items.length + ' 个动作</span></div>' +
+        '<div class="tplhead"><b>' + labelOf(t) + '日</b><span>' + items.length + ' 个动作</span></div>' +
         (items.length ? '<p class="tplnames">' + names + '</p>' : '<p class="tplnames">还没有模板</p>') +
         '<div class="tplbtns">' +
           '<button type="button" class="mini" data-tpl-apply="' + t + '"' + (items.length ? '' : ' disabled') + '>套用</button>' +
+          '<button type="button" class="mini" data-tpl-edit="' + t + '">' + (items.length ? '编辑动作' : '新建模板') + '</button>' +
           '<button type="button" class="mini" data-tpl-save="' + t + '">用今天存为模板</button>' +
           (items.length ? '<button type="button" class="mini danger" data-tpl-del="' + t + '">清除</button>' : '') +
         '</div></div>';
@@ -1584,19 +1708,18 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       name: it.name,
       part: it.part,
       note: '',
-      sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2]]),
+      sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2], false]),
     }));
     persist();
     renderAll();
     closeTpl();
-    showToast('已套用 ' + TYPES[t].label + '日模板');
-    startRest(REST_SEC, s.items[0] ? s.items[0].sets.length : 0);
+    showToast('已套用 ' + labelOf(t) + '日模板');
   }
 
   function saveTemplate(t) {
     const s = state.sessions[selKey];
     if (!s || !s.items.length) { showToast('这天还没有动作'); return; }
-    if (state.templates[t] && !confirm('覆盖「' + TYPES[t].label + '日」模板？')) return;
+    if (state.templates[t] && !confirm('覆盖「' + labelOf(t) + '日」模板？')) return;
     state.templates[t] = {
       items: s.items.map((it) => ({
         name: it.name,
@@ -1608,8 +1731,286 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     };
     persist();
     renderTpl();
-    showToast('已存为 ' + TYPES[t].label + '日模板');
+    showToast('已存为 ' + labelOf(t) + '日模板');
   }
+
+  /* ---- 模板里的动作编辑 ---- */
+  let te = { kind: null, part: '胸', open: -1 };
+
+  function tplEditItems() {
+    if (!te.kind || !state.templates[te.kind]) return null;
+    return state.templates[te.kind].items;
+  }
+
+  function saveTplEdit(items) {
+    if (items.length) state.templates[te.kind] = { items: items, updatedAt: Date.now() };
+    else delete state.templates[te.kind];
+    persist();
+    renderTplEdit();
+    renderTpl();
+  }
+
+  function openTplEdit(t) {
+    te.kind = t;
+    te.open = -1;
+    if (PARTS.indexOf(te.part) === -1) te.part = PARTS[0];
+    renderTplEdit();
+    $('#tplEditModal').hidden = false;
+  }
+
+  function closeTplEdit() {
+    $('#tplEditModal').hidden = true;
+    te.kind = null;
+    renderTpl();
+  }
+
+  function renderTplEdit() {
+    const t = te.kind;
+    if (!t) return;
+    const tpl = state.templates[t];
+    const items = tpl ? tpl.items : [];
+    $('#teTitle').textContent = labelOf(t) + '日 · 模板';
+    $('#teList').innerHTML = items.length
+      ? items.map((it, i) => {
+        const open = te.open === i;
+        const setsHtml = it.sets.map((x, si) =>
+          '<div class="setrow">' +
+            '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] +
+              '" data-ti="' + i + '" data-ts="' + si + '" data-tf="w" aria-label="重量 kg">' +
+            '<span>kg ×</span>' +
+            '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] +
+              '" data-ti="' + i + '" data-ts="' + si + '" data-tf="r" aria-label="次数">' +
+            '<span>次</span>' +
+            '<button type="button" class="mini danger" data-tsdel="1" data-ti="' + i + '" data-ts="' + si +
+              '" style="margin-left:auto">删</button>' +
+          '</div>').join('');
+        return '<div class="item' + (open ? ' open' : '') + '">' +
+          '<button type="button" class="itemhead" data-ttoggle="1" data-ti="' + i + '">' +
+            '<span class="ipart">' + esc(it.part) + '</span>' +
+            '<span class="iname">' + esc(it.name) + '</span>' +
+            '<span class="isets">' + summaryOf(it.sets) + '</span>' +
+            '<span class="iedit">' + (open ? '收起' : '编辑') + '</span>' +
+          '</button>' +
+          (open ? '<div class="detail">' +
+            '<div class="sets">' + setsHtml + '</div>' +
+            '<div class="detailrow">' +
+              '<button type="button" class="mini" data-taddset="1" data-ti="' + i + '">+ 加一组</button>' +
+              '<button type="button" class="mini danger" data-tdelitem="1" data-ti="' + i + '">删除动作</button>' +
+            '</div></div>' : '') +
+        '</div>';
+      }).join('')
+      : '<p class="emptyday">还没有动作。在下面选部位、填动作，点「添加」。</p>';
+    $('#teParts').innerHTML = PARTS.map((p) =>
+      '<button type="button" class="pchip' + (p === te.part ? ' on' : '') + '" data-tep="' + esc(p) + '">' +
+      esc(p) + '</button>').join('');
+    $('#teExList').innerHTML = datalist(te.part);
+    $('#teName').placeholder = '搜「' + te.part + '」动作，或直接输入';
+  }
+
+  $('#tplEditModal').addEventListener('click', (e) => {
+    if (e.target.id === 'tplEditModal') { closeTplEdit(); return; }
+    const pchip = e.target.closest('[data-tep]');
+    if (pchip) {
+      te.part = pchip.dataset.tep;
+      renderTplEdit();
+      return;
+    }
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const i = Number(btn.dataset.ti);
+    if (btn.dataset.ttoggle) {
+      te.open = te.open === i ? -1 : i;
+      renderTplEdit();
+      return;
+    }
+    const items = tplEditItems();
+    if (btn.dataset.tdelitem) {
+      if (items && items[i] && confirm('删除「' + items[i].name + '」？')) {
+        items.splice(i, 1);
+        te.open = -1;
+        saveTplEdit(items);
+      }
+      return;
+    }
+    if (btn.dataset.taddset) {
+      const it = items && items[i];
+      if (it) {
+        const lastSet = it.sets[it.sets.length - 1];
+        it.sets.push([lastSet[0], lastSet[1], null]);
+        saveTplEdit(items);
+      }
+      return;
+    }
+    if (btn.dataset.tsdel) {
+      const it = items && items[i];
+      const si = Number(btn.dataset.ts);
+      if (it && it.sets.length > 1) {
+        it.sets.splice(si, 1);
+        saveTplEdit(items);
+      }
+    }
+  });
+
+  $('#tplEditModal').addEventListener('input', (e) => {
+    const el = e.target;
+    if (!el.dataset || !el.dataset.tf) return;
+    const items = tplEditItems();
+    if (!items) return;
+    const it = items[Number(el.dataset.ti)];
+    if (!it) return;
+    const set = it.sets[Number(el.dataset.ts)];
+    if (!set) return;
+    const v = Number(el.value);
+    if (!isFinite(v)) return;
+    set[el.dataset.tf === 'w' ? 0 : 1] = el.dataset.tf === 'w' ? Math.max(0, v) : Math.max(1, Math.floor(v));
+    state.templates[te.kind] = { items: items, updatedAt: Date.now() };
+    persist();
+    const row = el.closest('.item');
+    if (row) {
+      const sum = row.querySelector('.isets');
+      if (sum) sum.textContent = summaryOf(it.sets);
+    }
+  });
+
+  function tplAddItem() {
+    const nameEl = $('#teName');
+    const name = nameEl.value.trim().slice(0, 20);
+    if (!name) { nameEl.focus(); return; }
+    const w = Math.max(0, Number($('#teW').value) || 0);
+    const r = Math.max(1, Math.floor(Number($('#teR').value) || 8));
+    const n = Math.max(1, Math.floor(Number($('#teS').value) || 3));
+    const part = SEED_MAP.get(name) || state.exercises[name] || te.part;
+    if (!state.templates[te.kind]) state.templates[te.kind] = { items: [], updatedAt: Date.now() };
+    const items = state.templates[te.kind].items;
+    const sets = [];
+    for (let k = 0; k < n; k++) sets.push([w, r, null]);
+    items.push({ name: name, part: part, note: '', sets: sets });
+    state.exercises[name] = part;
+    te.part = part;
+    te.open = items.length - 1;
+    saveTplEdit(items);
+    nameEl.value = '';
+    nameEl.focus();
+  }
+
+  $('#teAdd').addEventListener('click', tplAddItem);
+  $('#teName').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); tplAddItem(); }
+  });
+  $('#teClose').addEventListener('click', closeTplEdit);
+
+  /* ---- 训练日设置 ---- */
+  function renderPlan() {
+    const el = $('#planList');
+    if (!el) return;
+    el.innerHTML = state.plan.map((p, i) =>
+      '<div class="prow" data-i="' + i + '">' +
+        '<input class="pname" value="' + esc(p.label) + '" maxlength="6" aria-label="名称">' +
+        '<button type="button" class="pbtn" data-move="-1" title="上移">↑</button>' +
+        '<button type="button" class="pbtn" data-move="1" title="下移">↓</button>' +
+        '<button type="button" class="pbtn" data-del="1" title="删除">✕</button>' +
+        '<div class="pdots">' + PLAN_COLORS.map((c) =>
+          '<button type="button" class="pdot" data-color="' + c + '" aria-pressed="' + (c === p.color) +
+          '" style="--pc:' + c + '" aria-label="' + c + '"></button>').join('') +
+        '</div>' +
+      '</div>').join('');
+    $('#abSwitch').setAttribute('aria-pressed', AB_ON ? 'true' : 'false');
+  }
+
+  function openPlan() {
+    renderPlan();
+    $('#planModal').hidden = false;
+  }
+
+  function closePlan() {
+    $('#planModal').hidden = true;
+  }
+
+  function planChanged() {
+    syncPlan();
+    persist();
+    renderAll();
+  }
+
+  $('#planList').addEventListener('click', (e) => {
+    const row = e.target.closest('.prow');
+    if (!row) return;
+    const i = Number(row.dataset.i);
+    const p = state.plan[i];
+    if (!p) return;
+    if (e.target.classList.contains('pdot')) {
+      p.color = e.target.dataset.color;
+      planChanged();
+      renderPlan();
+      return;
+    }
+    const mv = Number(e.target.dataset.move || 0);
+    if (mv) {
+      const j = i + mv;
+      if (j < 0 || j >= state.plan.length) return;
+      const tmp = state.plan[i];
+      state.plan[i] = state.plan[j];
+      state.plan[j] = tmp;
+      planChanged();
+      renderPlan();
+      return;
+    }
+    if (e.target.dataset.del) {
+      if (state.plan.length <= 1) { showToast('至少留一个训练日'); return; }
+      const used = Object.keys(state.sessions).filter((k) => state.sessions[k].type === p.id).length;
+      if (used) { showToast(used + ' 天记录用着「' + p.label + '」，改名就行，别删'); return; }
+      if (!confirm('删除「' + p.label + '」？')) return;
+      state.plan.splice(i, 1);
+      delete state.templates[p.id];
+      planChanged();
+      renderPlan();
+    }
+  });
+
+  $('#planList').addEventListener('change', (e) => {
+    if (!e.target.classList.contains('pname')) return;
+    const row = e.target.closest('.prow');
+    const i = Number(row.dataset.i);
+    const p = state.plan[i];
+    if (!p) return;
+    const v = e.target.value.trim().slice(0, 6);
+    if (!v) { e.target.value = p.label; return; }
+    if (v === p.label) return;
+    p.label = v;
+    planChanged();
+    renderPlan();
+  });
+
+  $('#planAdd').addEventListener('click', () => {
+    if (state.plan.length >= 8) { showToast('最多 8 个训练日'); return; }
+    const n = state.plan.length;
+    state.plan.push({
+      id: 'k' + Date.now().toString(36).slice(-4),
+      label: '训练日' + (n + 1),
+      color: PLAN_COLORS[n % PLAN_COLORS.length],
+    });
+    planChanged();
+    renderPlan();
+    const rows = document.querySelectorAll('#planList .prow');
+    const lastRow = rows[rows.length - 1];
+    if (lastRow) {
+      const inp = lastRow.querySelector('.pname');
+      if (inp) { inp.focus(); inp.select(); }
+    }
+  });
+
+  $('#abSwitch').addEventListener('click', () => {
+    AB_ON = !AB_ON;
+    state.abOn = AB_ON;
+    planChanged();
+    renderPlan();
+    showToast(AB_ON ? '已开启 A/B 轮转' : '已关闭 A/B 轮转');
+  });
+
+  $('#planClose').addEventListener('click', closePlan);
+  $('#planModal').addEventListener('click', (e) => {
+    if (e.target.id === 'planModal') closePlan();
+  });
 
   function updateDaySum() {
     const s = state.sessions[selKey];
@@ -1658,9 +2059,26 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (act) {
       const i = Number(btn.dataset.i);
       if (act === 'toggle') { expanded = expanded === i ? -1 : i; renderDay(); return; }
+      if (act === 'checkSet') {
+        const it = ensure().items[i];
+        const si = Number(btn.dataset.s);
+        if (!it || !it.sets[si]) return;
+        const on = !it.sets[si][3];
+        it.sets[si][3] = on;
+        persist();
+        renderDay();
+        const allDone = it.sets.every((x) => x[3]);
+        if (on && !allDone) startRest(REST_SEC);
+        return;
+      }
       if (act === 'addSet') {
         const it = ensure().items[i];
-        if (it) { it.sets.push(it.sets[it.sets.length - 1].slice()); persist(); renderDay(); startRest(REST_SEC, it.sets.length); }
+        if (it) {
+          const lastSet = it.sets[it.sets.length - 1];
+          it.sets.push([lastSet[0], lastSet[1], lastSet[2], false]);
+          persist();
+          renderDay();
+        }
         return;
       }
       if (act === 'delSet') {
@@ -1707,12 +2125,18 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (btn.classList.contains('tbtn')) {
       const s = ensure();
       s.type = btn.dataset.type;
-      const prev = lastSameType(s.type, selKey);
-      s.ab = prev ? (prev[1].ab === 'A' ? 'B' : 'A') : 'A';
+      if (AB_ON) {
+        const prev = lastSameType(s.type, selKey);
+        s.ab = prev ? (prev[1].ab === 'A' ? 'B' : 'A') : 'A';
+      } else {
+        s.ab = null;
+      }
       persist();
       renderAll();
       return;
     }
+
+    if (btn.id === 'planEdit') { openPlan(); return; }
 
     if (btn.dataset.ab) {
       const s = ensure();
@@ -1833,6 +2257,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const b = e.target.closest('button');
     if (!b) return;
     if (b.dataset.tplApply) applyTemplate(b.dataset.tplApply);
+    else if (b.dataset.tplEdit) openTplEdit(b.dataset.tplEdit);
     else if (b.dataset.tplSave) saveTemplate(b.dataset.tplSave);
     else if (b.dataset.tplDel) {
       if (confirm('清除这个模板？')) {
@@ -1847,6 +2272,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       $('#tModal').hidden = true;
       $('#impModal').hidden = true;
       $('#tplModal').hidden = true;
+      $('#planModal').hidden = true;
+      closeTplEdit();
     }
   });
 
@@ -1999,6 +2426,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
   function mergeTraining(local, incoming) {
     const out = { sessions: {}, exercises: {} };
+    out.plan = (local && local.plan) || [];
+    out.abOn = local ? (local.abOn !== false) : true;
     const ls = (local && local.sessions) || {};
     const is = (incoming && incoming.sessions) || {};
     for (const k of Object.keys(ls)) out.sessions[k] = ls[k];
