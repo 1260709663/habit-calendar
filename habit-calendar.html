@@ -213,6 +213,22 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   font-size:12px;font-weight:600;color:var(--muted)}
 .pchip.on{background:#3b6fe0;border-color:transparent;color:#fff}
 .addrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:0;border-top:0}
+.modebar{display:flex;align-items:center;gap:6px;margin-top:10px}
+.seg{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;
+  font-size:12px;color:var(--muted)}
+.seg.on{background:#3b6fe0;border-color:transparent;color:#fff}
+.unitpick{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;
+  padding:4px 6px;font:inherit;font-size:12px}
+.modehint{font-size:11px;color:var(--muted);margin-left:auto}
+.trainbar{display:flex;align-items:center;gap:10px;margin-top:12px;padding:9px 12px;
+  border:1px solid var(--line);border-radius:12px;font-size:13px}
+.trainbar .tblabel{color:var(--muted);font-size:12px}
+.trainbar b{font-variant-numeric:tabular-nums;font-size:15px;letter-spacing:.5px}
+.trainbar button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;
+  padding:4px 12px;font-size:12px;margin-left:auto}
+.trainbar button:hover{border-color:#3b6fe0;color:#3b6fe0}
+.trainbar.run{border-color:#3b6fe055;background:color-mix(in srgb,#3b6fe0 6%,transparent)}
+.trainbar .est{color:var(--muted);font-size:11px}
 .addrow input,.addrow select{border:1px solid var(--line);border-radius:8px;background:transparent;
   color:var(--ink);padding:7px 9px;font:inherit;font-size:13px;min-width:0}
 .addrow input:focus-visible,.addrow select:focus-visible{outline:2px solid #4f8cff55;border-color:#4f8cff}
@@ -782,7 +798,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   }
   const colorOf = (id) => (TYPES[id] && TYPES[id].color) || '#7c8798';
   const labelOf = (id) => (TYPES[id] && TYPES[id].label) || id;
-  const PARTS = ['胸', '背', '腿', '肩', '臂', '核心'];
+  const PARTS = ['胸', '背', '腿', '臀', '小腿', '肩', '臂', '核心', '有氧'];
   const SEED = [
     // 胸
     ['卧推', '胸'], ['上斜卧推', '胸'], ['哑铃卧推', '胸'], ['上斜哑铃卧推', '胸'],
@@ -800,8 +816,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     ['深蹲', '腿'], ['前蹲', '腿'], ['哈克深蹲', '腿'], ['史密斯深蹲', '腿'],
     ['腿举', '腿'], ['单腿腿举', '腿'], ['保加利亚分腿蹲', '腿'], ['箭步蹲', '腿'],
     ['罗马尼亚硬拉', '腿'], ['直腿硬拉', '腿'], ['腿弯举', '腿'], ['腿屈伸', '腿'],
-    ['提踵', '腿'], ['坐姿提踵', '腿'], ['臀推', '腿'], ['臀桥', '腿'],
-    ['髋外展', '腿'], ['髋内收', '腿'],
+    ['提踵', '小腿'], ['坐姿提踵', '小腿'], ['臀推', '臀'], ['臀桥', '臀'],
+    ['髋外展', '臀'], ['髋内收', '腿'],
     // 肩
     ['肩推', '肩'], ['哑铃肩推', '肩'], ['阿诺德推举', '肩'], ['史密斯肩推', '肩'],
     ['侧平举', '肩'], ['单臂哑铃侧平举', '肩'], ['绳索侧平举', '肩'], ['前平举', '肩'],
@@ -832,6 +848,36 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     ['弹力带侧平举', '肩'], ['弹力带肩推', '肩'], ['弹力带前平举', '肩'],
     ['弹力带弯举', '臂'], ['弹力带下压', '臂'],
     ['鸟狗式', '核心'], ['空中自行车', '核心'], ['触踝卷腹', '核心'],
+    // 有氧
+    ['快走', '有氧'], ['爬坡快走', '有氧'], ['跑步机', '有氧'], ['椭圆机', '有氧'],
+    ['楼梯机', '有氧'], ['动感单车', '有氧'], ['划船机', '有氧'], ['跳绳', '有氧'],
+    ['开合跳', '有氧'], ['爬楼', '有氧'],
+    // 小腿
+    ['站姿提踵', '小腿'], ['单腿提踵', '小腿'],
+    // 以下对照 hasaneyldrm/exercises-dataset 挑的高频缺口动作
+    // 臀
+    ['杠铃臀桥', '臀'], ['相扑硬拉', '臀'], ['单腿硬拉', '臀'], ['直腿早安式', '臀'],
+    ['坐姿早安式', '臀'], ['杠铃登台阶', '臀'], ['弹力带登台阶', '臀'], ['杠铃侧弓步', '臀'],
+    ['后撤步箭步蹲', '臀'], ['长凳髋伸', '臀'], ['弹力带俯身髋伸', '臀'], ['弹力带拉力', '臀'],
+    ['绳索拉力', '臀'], ['弹力带直腿硬拉', '臀'],
+    // 小腿
+    ['杠铃站姿提踵', '小腿'], ['哑铃站姿提踵', '小腿'], ['史密斯提踵', '小腿'], ['腿举提踵', '小腿'],
+    ['驴式提踵', '小腿'], ['绳索站姿提踵', '小腿'], ['单腿坐姿提踵', '小腿'], ['反向提踵', '小腿'],
+    // 有氧
+    ['波比跳', '有氧'], ['高抬腿', '有氧'], ['滑冰跳', '有氧'], ['星星跳', '有氧'],
+    ['半蹲跳', '有氧'], ['熊爬', '有氧'],
+    // 腿
+    ['泽奇深蹲', '腿'], ['杰斐逊蹲', '腿'], ['器械髋内收', '腿'],
+    // 胸
+    ['上斜哑铃飞鸟', '胸'], ['史密斯上斜卧推', '胸'], ['单臂上斜哑铃推胸', '胸'],
+    // 背
+    ['T杠反手划船', '背'], ['哑铃反手划船', '背'],
+    // 肩
+    ['单臂绳索侧平举', '肩'], ['绳索高位反向飞鸟', '肩'], ['弹力带反向飞鸟', '肩'],
+    // 臂
+    ['绳索锤式弯举', '臂'], ['交叉锤式弯举', '臂'], ['单臂仰卧臂屈伸', '臂'],
+    // 核心
+    ['Pallof 推举', '核心'], ['绳索侧屈', '核心'], ['跪姿平板撑肩', '核心'],
   ];
   const SEED_MAP = new Map(SEED);
   const DAY = 86400000;
@@ -851,10 +897,21 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   const e1 = (s) => s[0] * (1 + s[1] / 30);
   const fmtW = (w) => (w > 0 ? String(w) : '自重');
   const fmtVol = (v) => (v >= 1000 ? (v / 1000).toFixed(1) + ' 吨' : Math.round(v) + ' kg');
+  const clockText = (ms) => {
+    const t = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+    return h ? h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
+      : m + ':' + String(s).padStart(2, '0');
+  };
+  const fmtDur = (ms) => {
+    const m = Math.max(0, Math.round(ms / 60000));
+    return m < 60 ? m + ' 分钟' : Math.floor(m / 60) + ' 小时 ' + (m % 60) + ' 分';
+  };
 
   // 人体肌肉多边形数据来自 react-body-highlighter（MIT，© 2020 GV79），派生自 react-native-body-highlighter
-  const PART_COLORS = { 胸: '#4f8cff', 背: '#22b573', 腿: '#f08c2e', 肩: '#9b6bff', 臂: '#e05a8f', 核心: '#12a8b8' };
-  const MUSCLE_PART = {'chest':'胸', 'trapezius':'背', 'upper-back':'背', 'lower-back':'背', 'front-deltoids':'肩', 'back-deltoids':'肩', 'biceps':'臂', 'triceps':'臂', 'forearm':'臂', 'abs':'核心', 'obliques':'核心', 'quadriceps':'腿', 'hamstring':'腿', 'gluteal':'腿', 'abductors':'腿', 'abductor':'腿', 'calves':'腿', 'knees':'腿', 'left-soleus':'腿', 'right-soleus':'腿', 'head':null, 'neck':null};
+  const PART_COLORS = { 胸: '#4f8cff', 背: '#22b573', 腿: '#f08c2e', 臀: '#a05bd0', 小腿: '#b08d3a',
+    肩: '#9b6bff', 臂: '#e05a8f', 核心: '#12a8b8', 有氧: '#2fa4a0' };
+  const MUSCLE_PART = {'chest':'胸', 'trapezius':'背', 'upper-back':'背', 'lower-back':'背', 'front-deltoids':'肩', 'back-deltoids':'肩', 'biceps':'臂', 'triceps':'臂', 'forearm':'臂', 'abs':'核心', 'obliques':'核心', 'quadriceps':'腿', 'hamstring':'腿', 'gluteal':'臀', 'abductors':'臀', 'abductor':'臀', 'calves':'小腿', 'knees':'腿', 'left-soleus':'小腿', 'right-soleus':'小腿', 'head':null, 'neck':null};
   const ANTERIOR_MU = [
     ["chest", ["51.8367347 41.6326531 51.0204082 55.1020408 57.9591837 57.9591837 67.755102 55.5102041 70.6122449 47.3469388 62.0408163 41.6326531", "29.7959184 46.5306122 31.4285714 55.5102041 40.8163265 57.9591837 48.1632653 55.1020408 47.755102 42.0408163 37.5510204 42.0408163"]],
     ["obliques", ["68.5714286 63.2653061 67.3469388 57.1428571 58.7755102 59.5918367 60 64.0816327 60.4081633 83.2653061 65.7142857 78.7755102 66.5306122 69.7959184", "33.877551 78.3673469 33.0612245 71.8367347 31.0204082 63.2653061 32.244898 57.1428571 40.8163265 59.1836735 39.1836735 63.2653061 39.1836735 83.6734694"]],
@@ -892,6 +949,14 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   const todayKey = toKey(today);
 
   /* ---- 数据 ---- */
+  function inferUnit(name, part) {
+    const n = String(name || '');
+    if (/平板支撑|侧平板|静蹲|靠墙|支撑/.test(n)) return '秒';
+    if (/拉伸|放松|泡沫轴/.test(n)) return '分';
+    if (part === '有氧') return '分';
+    return '次';
+  }
+
   function normalize(d) {
     const sessions = {};
     const exercises = {};
@@ -932,6 +997,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           items.push({
             name: it.name.slice(0, 20),
             part: PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他'),
+            unit: (it.unit === '秒' || it.unit === '分' || it.unit === '次') ? it.unit : inferUnit(it.name, it.part),
             note: '',
             sets: sets,
           });
@@ -963,6 +1029,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           items.push({
             name: it.name.slice(0, 20),
             part: PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他'),
+            unit: (it.unit === '秒' || it.unit === '分' || it.unit === '次') ? it.unit : inferUnit(it.name, it.part),
             note: typeof it.note === 'string' ? it.note.slice(0, 80) : '',
             sets: sets,
           });
@@ -973,6 +1040,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         sessions[k] = {
           type: kind,
           ab: abOn ? (v.ab === 'B' ? 'B' : 'A') : null,
+          startAt: Number(v.startAt) || 0,
+          endAt: Number(v.endAt) || 0,
+          est: Boolean(v.est),
           items: items,
           updatedAt: Number(v.updatedAt) || 0,
         };
@@ -1013,6 +1083,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   let selKey = todayKey;
   let expanded = -1;
   let addPart = '胸';
+  let addMode = '力';
+  let addUnit = '分';
 
   function persist() {
     try {
@@ -1054,13 +1126,13 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   function cur() {
     if (state.sessions[selKey]) return state.sessions[selKey];
     const s = suggestFor(selKey);
-    return { type: s.type, ab: s.ab, items: [] };
+    return { type: s.type, ab: s.ab, startAt: 0, endAt: 0, est: false, items: [] };
   }
 
   function ensure() {
     if (!state.sessions[selKey]) {
       const s = suggestFor(selKey);
-      state.sessions[selKey] = { type: s.type, ab: s.ab, items: [] };
+      state.sessions[selKey] = { type: s.type, ab: s.ab, startAt: 0, endAt: 0, est: false, items: [] };
     }
     return state.sessions[selKey];
   }
@@ -1118,8 +1190,14 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   }
 
   /* ---- 渲染：当天 ---- */
-  function summaryOf(sets) {
+  function summaryOf(sets, unit) {
     if (!sets || !sets.length) return '—';
+    const u = unit || '次';
+    if (u !== '次') {
+      const same = sets.every((s) => s[1] === sets[0][1]);
+      if (same) return sets[0][1] + u + '×' + sets.length;
+      return sets.map((s) => s[1] + u).join(' / ');
+    }
     const same = sets.every((s) => s[0] === sets[0][0] && s[1] === sets[0][1]);
     if (same) return fmtW(sets[0][0]) + '×' + sets[0][1] + '×' + sets.length;
     return sets.map((s) => fmtW(s[0]) + '×' + s[1]).join(' / ');
@@ -1164,25 +1242,33 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const open = expanded === i;
     const last = prevItem(it.name);
     const pr = itemPR(it);
+    const timed = it.unit === '秒' || it.unit === '分';
+    const u = timed ? it.unit : '次';
     let lastTxt = '第一次做这个动作';
     if (last) {
-      lastTxt = '上次 ' + last.date.slice(5).replace('-', '/') + '：' + fmtW(last.best[0]) + '×' +
-        last.best[1] + '×' + last.n;
-      lastTxt += last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次';
+      if (timed) {
+        lastTxt = '上次 ' + last.date.slice(5).replace('-', '/') + '：' + last.best[1] + u + '×' + last.n;
+      } else {
+        lastTxt = '上次 ' + last.date.slice(5).replace('-', '/') + '：' + fmtW(last.best[0]) + '×' +
+          last.best[1] + '×' + last.n;
+        lastTxt += last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次';
+      }
     }
-    const ivol = it.sets.reduce((a, x) => a + x[0] * x[1], 0);
+    const ivol = timed ? 0 : it.sets.reduce((a, x) => a + x[0] * x[1], 0);
     if (ivol) lastTxt += '；本次容量 ' + fmtVol(ivol);
     const setsHtml = it.sets.map((x, si) =>
       '<div class="setrow' + (x[3] ? ' done' : '') + '">' +
-        '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] + '" data-i="' + i + '" data-s="' + si +
-          '" data-f="w" aria-label="重量 kg">' +
-        '<span>kg ×</span>' +
-        '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] + '" data-i="' + i + '" data-s="' + si +
-          '" data-f="r" aria-label="次数">' +
-        '<span>次</span>' +
-        '<input type="number" step="1" min="0" max="10" inputmode="numeric" class="rir" value="' +
-          (x[2] === null || x[2] === undefined ? '' : x[2]) +
-          '" data-i="' + i + '" data-s="' + si + '" data-f="rir" placeholder="RIR" aria-label="RIR 余力次数" title="RIR：还能做几次">' +
+        (timed ? '' :
+          '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] + '" data-i="' + i +
+            '" data-s="' + si + '" data-f="w" aria-label="重量 kg">' +
+          '<span>kg ×</span>') +
+        '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] + '" data-i="' + i +
+          '" data-s="' + si + '" data-f="r" aria-label="' + u + '">' +
+        '<span>' + u + '</span>' +
+        (timed ? '' :
+          '<input type="number" step="1" min="0" max="10" inputmode="numeric" class="rir" value="' +
+            (x[2] === null || x[2] === undefined ? '' : x[2]) +
+            '" data-i="' + i + '" data-s="' + si + '" data-f="rir" placeholder="RIR" aria-label="RIR 余力次数" title="RIR：还能做几次">') +
         '<button type="button" class="setcheck" data-act="checkSet" data-i="' + i + '" data-s="' + si +
           '" aria-pressed="' + (x[3] ? 'true' : 'false') + '" aria-label="打勾并开始组间休息" title="做完了 → 开始组间休息">' +
           (x[3] ? '✓' : '') + '</button>' +
@@ -1194,7 +1280,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<span class="ipart">' + esc(it.part) + '</span>' +
         '<span class="iname">' + esc(it.name) + '</span>' +
         (pr ? '<span class="prbadge">🏆 PR</span>' : '') +
-        '<span class="isets">' + summaryOf(it.sets) + '</span>' +
+        '<span class="isets">' + summaryOf(it.sets, it.unit) + '</span>' +
         '<span class="iedit">' + (open ? '收起' : '编辑') + '</span>' +
       '</button>' +
       (open ? '<div class="detail">' +
@@ -1272,6 +1358,33 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     }
     if (!isDraft) footBtns.push('<button type="button" class="mini danger" id="clearDay">清空这天</button>');
 
+    const sess = state.sessions[selKey];
+    let tb;
+    if (sess && sess.startAt && !sess.endAt) {
+      tb = '<div class="trainbar run"><span class="tblabel">训练中</span><b id="trainClock">' +
+        clockText(Date.now() - sess.startAt) + '</b>' +
+        '<button type="button" data-act="stopTrain">结束</button></div>';
+    } else if (sess && sess.startAt && sess.endAt) {
+      tb = '<div class="trainbar"><span class="tblabel">训练时长</span><b>' +
+        (sess.est ? '约 ' : '') + fmtDur(sess.endAt - sess.startAt) + '</b>' +
+        '<button type="button" data-act="editTrain">改</button></div>';
+    } else {
+      tb = '<div class="trainbar"><span class="tblabel">训练时长</span><b>—</b>' +
+        '<button type="button" data-act="startTrain">开始训练</button></div>';
+    }
+    const durTxt = (sess && sess.startAt && sess.endAt)
+      ? ' · ' + (sess.est ? '约 ' : '') + fmtDur(sess.endAt - sess.startAt) : '';
+
+    const segHtml =
+      '<div class="modebar">' +
+        '<button type="button" class="seg' + (addMode === '力' ? ' on' : '') + '" data-mode="力">力量</button>' +
+        '<button type="button" class="seg' + (addMode === '时' ? ' on' : '') + '" data-mode="时">计时</button>' +
+        '<select class="unitpick" id="exUnit" aria-label="计时单位"' + (addMode === '时' ? '' : ' hidden') + '>' +
+          ['秒', '分'].map((u) => '<option' + (u === addUnit ? ' selected' : '') + '>' + u + '</option>').join('') +
+        '</select>' +
+        '<span class="modehint">' + (addMode === '时' ? '只记时长，不记重量' : '重量 × 次数') + '</span>' +
+      '</div>';
+
     $('#tDay').innerHTML =
       '<div class="dayhead">' +
         '<div><h2>' + title + '</h2><p class="sub">' + metaText + '</p></div>' +
@@ -1282,24 +1395,29 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           '<button type="button" class="tedit" id="planEdit" aria-label="编辑训练日">✎ 编辑</button>' +
         '</div>' +
       '</div>' +
+      tb +
       '<div class="items">' +
         (itemsHtml || '<p class="emptyday">还没有动作。先在下面选部位，再挑一个动作，或者复制上次同类型。</p>') +
       '</div>' +
       '<div class="partchips">' + PARTS.map((p) =>
         '<button type="button" class="pchip' + (p === addPart ? ' on' : '') + '" data-p="' + p + '">' +
         p + '</button>').join('') + '</div>' +
+      segHtml +
       '<div class="addrow">' +
         '<input id="exName" list="exList" placeholder="搜「' + addPart + '」动作，或直接输入" autocomplete="off">' +
         '<datalist id="exList">' + datalist(addPart) + '</datalist>' +
-        '<input id="exW" type="number" step="0.5" min="0" inputmode="decimal" placeholder="kg">' +
-        '<input id="exR" type="number" step="1" min="1" inputmode="numeric" placeholder="次">' +
+        '<input id="exW" type="number" step="0.5" min="0" inputmode="decimal" placeholder="kg"' +
+          (addMode === '时' ? ' hidden' : '') + '>' +
+        '<input id="exR" type="number" step="1" min="1" inputmode="numeric" placeholder="' +
+          (addMode === '时' ? addUnit : '次') + '">' +
         '<input id="exS" type="number" step="1" min="1" inputmode="numeric" value="3" placeholder="组">' +
         '<button type="button" class="btn" id="exAdd">添加</button>' +
       '</div>' +
       '<div class="exquick" id="exQuick">' + quickList(addPart) + '</div>' +
       '<p class="addhint" id="addHint">点动作直接填入，也可以手动输入。</p>' +
       '<div class="daysum">' +
-        (s.items.length ? s.items.length + ' 个动作 · ' + setsN + ' 组 · 容量 ' + fmtVol(vol) : '今天还没记录') +
+        (s.items.length ? s.items.length + ' 个动作 · ' + setsN + ' 组 · 容量 ' + fmtVol(vol) + durTxt
+          : (durTxt ? '今天还没记录动作' + durTxt : '今天还没记录')) +
       '</div>' +
       (s.items.length ? '<div class="bodybox"><h4>这次练到</h4>' + bodySvg(sessionFill(s)) +
         '<div class="rgrid">' + partList + '</div></div>' : '') +
@@ -1383,9 +1501,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const counts = {};
     s.items.forEach((it) => { counts[it.part] = (counts[it.part] || 0) + it.sets.length; });
     return (part) => {
-      const n = counts[part] || 0;
+      let n = counts[part] || 0;
+      let key = part;
+      if (!n && (part === '臀' || part === '小腿')) { n = counts['腿'] || 0; key = '腿'; }
       if (!n) return { fill: 'var(--muscle)', op: 1 };
-      return { fill: PART_COLORS[part] || '#e5484d', op: Math.min(0.95, 0.35 + n * 0.09) };
+      return { fill: PART_COLORS[key] || '#e5484d', op: Math.min(0.95, 0.35 + n * 0.09) };
     };
   }
 
@@ -1420,7 +1540,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       };
     });
     const fillOf = (part) => {
-      const r = info[part];
+      let r = info[part];
+      if ((!r || r.pct === null) && (part === '臀' || part === '小腿')) r = info['腿'];
       if (!r || r.pct === null) return { fill: 'var(--muscle)', op: 1 };
       return { fill: recoveryColor(r.pct), op: 0.92 };
     };
@@ -1507,6 +1628,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     target.items = last[1].items.map((it) => ({
       name: it.name,
       part: it.part,
+      unit: it.unit || '次',
       note: '',
       sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2]]),
     }));
@@ -1520,14 +1642,16 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (!nameEl) return;
     const name = nameEl.value.trim().slice(0, 20);
     if (!name) { nameEl.focus(); return; }
-    const w = Math.max(0, Number($('#exW').value) || 0);
-    const r = Math.max(1, Math.floor(Number($('#exR').value) || 8));
-    const n = Math.max(1, Math.floor(Number($('#exS').value) || 3));
+    const timed = addMode === '时';
+    const unit = timed ? addUnit : '次';
+    const w = timed ? 0 : Math.max(0, Number($('#exW').value) || 0);
+    const r = Math.max(1, Math.floor(Number($('#exR').value) || (timed ? 20 : 8)));
+    const n = Math.max(1, Math.floor(Number($('#exS').value) || (timed ? 1 : 3)));
     const part = SEED_MAP.get(name) || state.exercises[name] || addPart;
     const s = ensure();
     const sets = [];
     for (let i = 0; i < n; i++) sets.push([w, r, null, false]);
-    s.items.push({ name: name, part: part, note: '', sets: sets });
+    s.items.push({ name: name, part: part, unit: unit, note: '', sets: sets });
     state.exercises[name] = part;
     addPart = part;
     expanded = s.items.length - 1;
@@ -1552,9 +1676,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const name = nameEl.value.trim();
     const last = name ? prevItem(name) : null;
     if (wEl) wEl.placeholder = last ? fmtW(last.best[0]) + '×' + last.best[1] : 'kg';
-    if (rEl) rEl.placeholder = last ? String(last.best[1]) : '次';
+    if (rEl) rEl.placeholder = last ? String(last.best[1]) : (addMode === '时' ? addUnit : '次');
     if (hint) {
-      if (last) {
+      if (last && addMode === '时') {
+        hint.textContent = '上次「' + name + '」' + last.best[1] + addUnit + '×' + last.n;
+      } else if (last) {
         hint.textContent = '上次「' + name + '」' + fmtW(last.best[0]) + '×' + last.best[1] + '×' + last.n +
           (last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次');
       } else if (name) {
@@ -1589,6 +1715,65 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (name) name.placeholder = '搜「' + addPart + '」动作，或直接输入';
     updateAddHints();
   }
+
+  function syncAddMode() {
+    document.querySelectorAll('#tDay .seg').forEach((b) =>
+      b.classList.toggle('on', b.dataset.mode === addMode));
+    const up = $('#exUnit');
+    if (up) { up.hidden = addMode !== '时'; up.value = addUnit; }
+    const wEl = $('#exW');
+    if (wEl) wEl.hidden = addMode !== '力';
+    const rEl = $('#exR');
+    if (rEl) rEl.placeholder = addMode === '时' ? addUnit : '次';
+    const hint = document.querySelector('#tDay .modehint');
+    if (hint) hint.textContent = addMode === '时' ? '只记时长，不记重量' : '重量 × 次数';
+  }
+
+  /* ---- 提示音 ---- */
+  let actx = null;
+  function ensureAudio() {
+    if (actx) return actx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { actx = new AC(); } catch (err) { actx = null; }
+    return actx;
+  }
+  function unlockAudio() {
+    const ctx = ensureAudio();
+    if (ctx && ctx.state === 'suspended') {
+      try {
+        const p = ctx.resume();
+        if (p && p.catch) p.catch(() => {});
+      } catch (err) { /* 忽略 */ }
+    }
+  }
+  function beep() {
+    if (document.visibilityState === 'hidden') return;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      try {
+        const p = ctx.resume();
+        if (p && p.catch) p.catch(() => {});
+      } catch (err) { return; }
+    }
+    const t0 = ctx.currentTime;
+    [[880, 0, 0.14], [1174.7, 0.17, 0.22]].forEach(([f, at, dur]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.0001, t0 + at);
+      gain.gain.exponentialRampToValueAtTime(0.3, t0 + at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0 + at);
+      osc.stop(t0 + at + dur + 0.03);
+    });
+  }
+  ['pointerdown', 'touchstart', 'click', 'keydown'].forEach((ev) =>
+    document.addEventListener(ev, unlockAudio, { once: true, passive: true }));
 
   /* ---- 组间休息 ---- */
   let restEnd = 0;
@@ -1638,6 +1823,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         try { navigator.vibrate(200); } catch (err) { /* 忽略 */ }
       }
+      beep();
       if (!more) {
         const endAt = restEnd;
         setTimeout(() => { if (restEnd === endAt) bar.hidden = true; }, 4000);
@@ -1707,6 +1893,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     s.items = tpl.items.map((it) => ({
       name: it.name,
       part: it.part,
+      unit: it.unit || '次',
       note: '',
       sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2], false]),
     }));
@@ -1724,6 +1911,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       items: s.items.map((it) => ({
         name: it.name,
         part: it.part,
+        unit: it.unit || '次',
         note: '',
         sets: it.sets.map((x) => [x[0], x[1], x[2] === undefined ? null : x[2]]),
       })),
@@ -1773,14 +1961,15 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     $('#teList').innerHTML = items.length
       ? items.map((it, i) => {
         const open = te.open === i;
+        const tu = (it.unit === '秒' || it.unit === '分') ? it.unit : '次';
         const setsHtml = it.sets.map((x, si) =>
           '<div class="setrow">' +
-            '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] +
+            (tu === '次' ? '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] +
               '" data-ti="' + i + '" data-ts="' + si + '" data-tf="w" aria-label="重量 kg">' +
-            '<span>kg ×</span>' +
+              '<span>kg ×</span>' : '') +
             '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] +
-              '" data-ti="' + i + '" data-ts="' + si + '" data-tf="r" aria-label="次数">' +
-            '<span>次</span>' +
+              '" data-ti="' + i + '" data-ts="' + si + '" data-tf="r" aria-label="' + tu + '">' +
+            '<span>' + tu + '</span>' +
             '<button type="button" class="mini danger" data-tsdel="1" data-ti="' + i + '" data-ts="' + si +
               '" style="margin-left:auto">删</button>' +
           '</div>').join('');
@@ -1788,7 +1977,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           '<button type="button" class="itemhead" data-ttoggle="1" data-ti="' + i + '">' +
             '<span class="ipart">' + esc(it.part) + '</span>' +
             '<span class="iname">' + esc(it.name) + '</span>' +
-            '<span class="isets">' + summaryOf(it.sets) + '</span>' +
+            '<span class="isets">' + summaryOf(it.sets, it.unit) + '</span>' +
             '<span class="iedit">' + (open ? '收起' : '编辑') + '</span>' +
           '</button>' +
           (open ? '<div class="detail">' +
@@ -1868,7 +2057,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const row = el.closest('.item');
     if (row) {
       const sum = row.querySelector('.isets');
-      if (sum) sum.textContent = summaryOf(it.sets);
+      if (sum) sum.textContent = summaryOf(it.sets, it.unit);
     }
   });
 
@@ -1884,7 +2073,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const items = state.templates[te.kind].items;
     const sets = [];
     for (let k = 0; k < n; k++) sets.push([w, r, null]);
-    items.push({ name: name, part: part, note: '', sets: sets });
+    items.push({ name: name, part: part, unit: inferUnit(name, part), note: '', sets: sets });
     state.exercises[name] = part;
     te.part = part;
     te.open = items.length - 1;
@@ -2060,15 +2249,50 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       const i = Number(btn.dataset.i);
       if (act === 'toggle') { expanded = expanded === i ? -1 : i; renderDay(); return; }
       if (act === 'checkSet') {
-        const it = ensure().items[i];
+        const day = ensure();
+        const it = day.items[i];
         const si = Number(btn.dataset.s);
         if (!it || !it.sets[si]) return;
         const on = !it.sets[si][3];
         it.sets[si][3] = on;
+        if (on && !day.startAt) { day.startAt = Date.now(); day.est = true; }
+        if (!on) day.endAt = 0;
+        const allDone = day.items.length > 0 && day.items.every((x) => x.sets.every((y) => y[3]));
+        if (on && allDone) day.endAt = Date.now();
         persist();
         renderDay();
-        const allDone = it.sets.every((x) => x[3]);
         if (on && !allDone) startRest(REST_SEC);
+        return;
+      }
+      if (act === 'startTrain') {
+        const day = ensure();
+        day.startAt = Date.now();
+        day.endAt = 0;
+        day.est = false;
+        persist();
+        renderDay();
+        return;
+      }
+      if (act === 'stopTrain') {
+        const day = ensure();
+        if (!day.startAt) day.startAt = Date.now();
+        day.endAt = Date.now();
+        persist();
+        renderDay();
+        return;
+      }
+      if (act === 'editTrain') {
+        const day = ensure();
+        if (!day.startAt) return;
+        const now = Math.max(1, Math.round((day.endAt - day.startAt) / 60000));
+        const v = window.prompt('这次训练多少分钟？（只改时长，开始时间不变）', String(now));
+        if (v === null) return;
+        const m = Number(v);
+        if (!isFinite(m) || m <= 0) { showToast('请输入分钟数'); return; }
+        day.endAt = day.startAt + Math.round(m) * 60000;
+        day.est = false;
+        persist();
+        renderDay();
         return;
       }
       if (act === 'addSet') {
@@ -2105,9 +2329,18 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       if (act === 'chart') { openChart(Number(btn.dataset.i)); return; }
     }
 
+    if (btn.classList.contains('seg')) {
+      addMode = btn.dataset.mode;
+      syncAddMode();
+      return;
+    }
+
     if (btn.classList.contains('pchip')) {
       addPart = btn.dataset.p;
+      addMode = addPart === '有氧' ? '时' : '力';
+      if (addMode === '时') addUnit = '分';
       refreshAdd();
+      syncAddMode();
       return;
     }
 
@@ -2115,9 +2348,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       const nameEl = $('#exName');
       if (nameEl) {
         nameEl.value = btn.dataset.name;
+        const guess = inferUnit(nameEl.value, SEED_MAP.get(nameEl.value) || addPart);
+        if (guess !== '次') { addMode = '时'; addUnit = guess; syncAddMode(); }
         updateAddHints();
-        const wEl = $('#exW');
-        if (wEl) wEl.focus();
+        const target = addMode === '时' ? $('#exR') : $('#exW');
+        if (target) target.focus();
       }
       return;
     }
@@ -2188,7 +2423,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const row = t.closest ? t.closest('.item') : null;
     if (row) {
       const sum = row.querySelector('.isets');
-      if (sum) sum.textContent = summaryOf(it.sets);
+      if (sum) sum.textContent = summaryOf(it.sets, it.unit);
     }
     updateDaySum();
     persist();
@@ -2196,6 +2431,12 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
   $('#tDay').addEventListener('change', (e) => {
     const t = e.target;
+    if (t.id === 'exUnit') {
+      addUnit = t.value;
+      const rEl = $('#exR');
+      if (rEl) rEl.placeholder = addUnit;
+      return;
+    }
     if (!t.dataset || (t.dataset.f !== 'w' && t.dataset.f !== 'r')) return;
     const s = state.sessions[selKey];
     if (!s) return;
@@ -2301,12 +2542,16 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
   /* ---- 导入与合并 ---- */
   const PART_HINTS = [
+    ['楼梯机', '有氧'], ['爬坡', '有氧'], ['快走', '有氧'], ['跑步机', '有氧'], ['椭圆', '有氧'],
+    ['单车', '有氧'], ['划船机', '有氧'], ['跳绳', '有氧'], ['有氧', '有氧'],
+    ['提踵', '小腿'], ['小腿', '小腿'],
+    ['臀桥', '臀'], ['臀推', '臀'], ['臀', '臀'],
     ['Pallof', '核心'], ['卷腹', '核心'], ['举腿', '核心'], ['侧平板', '核心'], ['平板支撑', '核心'],
     ['健腹', '核心'], ['转体', '核心'], ['登山', '核心'], ['死虫', '核心'],
     ['鸟狗', '核心'], ['自行车', '核心'],
     ['腿弯举', '腿'], ['腿屈伸', '腿'], ['罗马尼亚硬拉', '腿'], ['前蹲', '腿'], ['深蹲', '腿'],
     ['静蹲', '腿'], ['腿举', '腿'], ['提踵', '腿'], ['髋内收', '腿'], ['髋外展', '腿'],
-    ['分腿', '腿'], ['弓步', '腿'], ['箭步', '腿'], ['侧步', '腿'], ['台阶', '腿'], ['臀', '腿'],
+    ['分腿', '腿'], ['弓步', '腿'], ['箭步', '腿'], ['侧步', '腿'], ['台阶', '腿'],
     ['直立划船', '肩'], ['反向飞鸟', '肩'], ['推肩', '肩'], ['肩推', '肩'], ['推举', '肩'],
     ['侧平举', '肩'], ['前平举', '肩'], ['后束', '肩'],
     ['过顶', '臂'], ['双杠', '胸'], ['弯举', '臂'], ['下压', '臂'], ['窄距卧推', '臂'], ['臂屈伸', '臂'],
@@ -2523,6 +2768,14 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       try { navigator.serviceWorker.register('./sw.js').catch(() => {}); } catch (err) { /* 忽略 */ }
     }
   }
+  setInterval(() => {
+    const el = $('#trainClock');
+    if (!el) return;
+    const sess = state.sessions[selKey];
+    if (!sess || !sess.startAt || sess.endAt) return;
+    el.textContent = clockText(Date.now() - sess.startAt);
+  }, 1000);
+
   renderBackupTip();
   renderAll();
 })();
