@@ -1084,7 +1084,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   let expanded = -1;
   let addPart = '胸';
   let addMode = '力';
-  let addUnit = '分';
+  let addUnit = '秒';
 
   function persist() {
     try {
@@ -1262,7 +1262,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] + '" data-i="' + i +
             '" data-s="' + si + '" data-f="w" aria-label="重量 kg">' +
           '<span>kg ×</span>') +
-        '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] + '" data-i="' + i +
+        '<input type="number" step="' + (it.unit === '分' ? '0.5' : '1') + '" min="' + (it.unit === '分' ? '0.5' : '1') +
+          '" inputmode="' + (it.unit === '分' ? 'decimal' : 'numeric') + '" value="' + x[1] + '" data-i="' + i +
           '" data-s="' + si + '" data-f="r" aria-label="' + u + '">' +
         '<span>' + u + '</span>' +
         (timed ? '' :
@@ -1382,7 +1383,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<select class="unitpick" id="exUnit" aria-label="计时单位"' + (addMode === '时' ? '' : ' hidden') + '>' +
           ['秒', '分'].map((u) => '<option' + (u === addUnit ? ' selected' : '') + '>' + u + '</option>').join('') +
         '</select>' +
-        '<span class="modehint">' + (addMode === '时' ? '只记时长，不记重量' : '重量 × 次数') + '</span>' +
+        '<span class="modehint">' + (addMode === '时'
+          ? (addUnit === '分' ? '只记时长 · 0.5 分 = 30 秒' : '只记时长（秒）')
+          : '重量 × 次数') + '</span>' +
       '</div>';
 
     $('#tDay').innerHTML =
@@ -1408,7 +1411,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<datalist id="exList">' + datalist(addPart) + '</datalist>' +
         '<input id="exW" type="number" step="0.5" min="0" inputmode="decimal" placeholder="kg"' +
           (addMode === '时' ? ' hidden' : '') + '>' +
-        '<input id="exR" type="number" step="1" min="1" inputmode="numeric" placeholder="' +
+        '<input id="exR" type="number" step="' + (addMode === '时' && addUnit === '分' ? '0.5' : '1') +
+          '" min="' + (addMode === '时' && addUnit === '分' ? '0.5' : '1') +
+          '" inputmode="' + (addMode === '时' && addUnit === '分' ? 'decimal' : 'numeric') + '" placeholder="' +
           (addMode === '时' ? addUnit : '次') + '">' +
         '<input id="exS" type="number" step="1" min="1" inputmode="numeric" value="3" placeholder="组">' +
         '<button type="button" class="btn" id="exAdd">添加</button>' +
@@ -1645,7 +1650,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const timed = addMode === '时';
     const unit = timed ? addUnit : '次';
     const w = timed ? 0 : Math.max(0, Number($('#exW').value) || 0);
-    const r = Math.max(1, Math.floor(Number($('#exR').value) || (timed ? 20 : 8)));
+    const rawR = Number($('#exR').value) || (timed ? (addUnit === '分' ? 1 : 20) : 8);
+    const r = (timed && addUnit === '分') ? Math.max(0.1, Math.round(rawR * 10) / 10) : Math.max(1, Math.floor(rawR));
     const n = Math.max(1, Math.floor(Number($('#exS').value) || (timed ? 1 : 3)));
     const part = SEED_MAP.get(name) || state.exercises[name] || addPart;
     const s = ensure();
@@ -1724,9 +1730,19 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const wEl = $('#exW');
     if (wEl) wEl.hidden = addMode !== '力';
     const rEl = $('#exR');
-    if (rEl) rEl.placeholder = addMode === '时' ? addUnit : '次';
+    if (rEl) {
+      const deci = addMode === '时' && addUnit === '分';
+      rEl.placeholder = addMode === '时' ? addUnit : '次';
+      rEl.step = deci ? '0.5' : '1';
+      rEl.min = deci ? '0.5' : '1';
+      rEl.inputMode = deci ? 'decimal' : 'numeric';
+    }
     const hint = document.querySelector('#tDay .modehint');
-    if (hint) hint.textContent = addMode === '时' ? '只记时长，不记重量' : '重量 × 次数';
+    if (hint) {
+      hint.textContent = addMode === '时'
+        ? (addUnit === '分' ? '只记时长 · 0.5 分 = 30 秒' : '只记时长（秒）')
+        : '重量 × 次数';
+    }
   }
 
   /* ---- 提示音 ---- */
@@ -1967,7 +1983,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
             (tu === '次' ? '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] +
               '" data-ti="' + i + '" data-ts="' + si + '" data-tf="w" aria-label="重量 kg">' +
               '<span>kg ×</span>' : '') +
-            '<input type="number" step="1" min="1" inputmode="numeric" value="' + x[1] +
+            '<input type="number" step="' + (tu === '分' ? '0.5' : '1') + '" min="' + (tu === '分' ? '0.5' : '1') +
+              '" inputmode="' + (tu === '分' ? 'decimal' : 'numeric') + '" value="' + x[1] +
               '" data-ti="' + i + '" data-ts="' + si + '" data-tf="r" aria-label="' + tu + '">' +
             '<span>' + tu + '</span>' +
             '<button type="button" class="mini danger" data-tsdel="1" data-ti="' + i + '" data-ts="' + si +
@@ -2051,7 +2068,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (!set) return;
     const v = Number(el.value);
     if (!isFinite(v)) return;
-    set[el.dataset.tf === 'w' ? 0 : 1] = el.dataset.tf === 'w' ? Math.max(0, v) : Math.max(1, Math.floor(v));
+    if (el.dataset.tf === 'w') set[0] = Math.max(0, v);
+    else if (it.unit === '分') set[1] = Math.max(0.1, Math.round(v * 10) / 10);
+    else set[1] = Math.max(1, Math.floor(v));
     state.templates[te.kind] = { items: items, updatedAt: Date.now() };
     persist();
     const row = el.closest('.item');
@@ -2338,7 +2357,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (btn.classList.contains('pchip')) {
       addPart = btn.dataset.p;
       addMode = addPart === '有氧' ? '时' : '力';
-      if (addMode === '时') addUnit = '分';
+      addUnit = addMode === '时' ? '分' : '秒';
       refreshAdd();
       syncAddMode();
       return;
@@ -2418,7 +2437,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     }
     let v = Number(t.value);
     if (!isFinite(v)) return;
-    v = f === 'w' ? Math.max(0, v) : Math.max(1, Math.floor(v));
+    if (f === 'w') v = Math.max(0, v);
+    else if (it.unit === '分') v = Math.max(0.1, Math.round(v * 10) / 10);
+    else v = Math.max(1, Math.floor(v));
     it.sets[si][f === 'w' ? 0 : 1] = v;
     const row = t.closest ? t.closest('.item') : null;
     if (row) {
@@ -2433,8 +2454,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const t = e.target;
     if (t.id === 'exUnit') {
       addUnit = t.value;
-      const rEl = $('#exR');
-      if (rEl) rEl.placeholder = addUnit;
+      syncAddMode();
       return;
     }
     if (!t.dataset || (t.dataset.f !== 'w' && t.dataset.f !== 'r')) return;
