@@ -174,8 +174,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   padding:10px 12px;text-align:left}
 .itemhead:hover{background:var(--cell)}
 .ipart{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 5px;flex:none}
-.iname{font-weight:600;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.isets{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);flex:none}
+.iname{font-weight:600;font-size:14px;flex:1 1 auto;min-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.isets{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);flex:0 1 auto;max-width:52%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ialso{font-size:10px;color:var(--muted);flex:none;opacity:.85}
 .icar{color:var(--muted);font-size:12px;flex:none}
 .iedit{font-size:11px;color:#3b6fe0;background:color-mix(in srgb,#3b6fe0 10%,transparent);
   border-radius:999px;padding:2px 9px;flex:none}
@@ -225,7 +227,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .trainbar .tblabel{color:var(--muted);font-size:12px}
 .trainbar b{font-variant-numeric:tabular-nums;font-size:15px;letter-spacing:.5px}
 .trainbar button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;
-  padding:4px 12px;font-size:12px;margin-left:auto}
+  padding:4px 12px;font-size:12px;margin-left:6px}
+.trainbar button:first-of-type{margin-left:auto}
+.trainbar.pause{border-style:dashed}
+.trainbar.pause b{color:var(--muted)}
 .trainbar button:hover{border-color:#3b6fe0;color:#3b6fe0}
 .trainbar.run{border-color:#3b6fe055;background:color-mix(in srgb,#3b6fe0 6%,transparent)}
 .trainbar .est{color:var(--muted);font-size:11px}
@@ -279,6 +284,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   padding:8px 12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.45);z-index:60;font-size:12px}
 .restbar[hidden]{display:none}
 .restbar.done{background:#1f7a4d}
+.restbar.paused{opacity:.6}
 .restbar b{font-size:16px;font-variant-numeric:tabular-nums;min-width:46px;text-align:center}
 .rbtn{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;padding:4px 8px;font-size:11px}
 .rbtn:hover{background:rgba(255,255,255,.26)}
@@ -427,6 +433,15 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         <h3>训练模板</h3>
         <p class="mpr">套用预设动作，或把今天存成模板。</p>
         <div id="tplList"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="partModal" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="选择部位">
+        <button class="mclose" id="partClose" type="button" aria-label="关闭">✕</button>
+        <h3 id="partTitle">改到哪个部位</h3>
+        <p class="mpr" id="partDesc"></p>
+        <div class="partchips" id="partPick" style="border-top:0;padding-top:0;margin-top:6px"></div>
       </div>
     </div>
 
@@ -804,10 +819,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     ['卧推', '胸'], ['上斜卧推', '胸'], ['哑铃卧推', '胸'], ['上斜哑铃卧推', '胸'],
     ['上斜哑铃推', '胸'], ['下斜卧推', '胸'], ['史密斯卧推', '胸'], ['器械推胸', '胸'],
     ['哑铃飞鸟', '胸'], ['器械夹胸', '胸'], ['蝴蝶机夹胸', '胸'], ['绳索夹胸', '胸'],
-    ['双杠臂屈伸', '胸'], ['负重双杠臂屈伸', '胸'], ['俯卧撑', '胸'], ['上斜俯卧撑', '胸'],
+    ['双杠臂屈伸', '胸'], ['负重双杠臂屈伸', '胸'], ['辅助双杠臂屈伸', '胸'], ['俯卧撑', '胸'], ['上斜俯卧撑', '胸'],
     ['单臂哑铃卧推', '胸'], ['地板卧推', '胸'], ['哑铃仰卧上拉', '胸'],
     // 背
-    ['引体向上', '背'], ['反手引体向上', '背'], ['辅助引体向上', '背'], ['高位下拉', '背'],
+    ['引体向上', '背'], ['反手引体向上', '背'], ['辅助引体向上', '背'], ['弹力带辅助引体', '背'], ['高位下拉', '背'],
     ['窄距下拉', '背'], ['直臂下拉', '背'], ['杠铃划船', '背'], ['哑铃划船', '背'],
     ['单臂哑铃划船', '背'], ['坐姿划船', '背'], ['坐姿绳索划船', '背'], ['T杠划船', '背'],
     ['潘德雷划船', '背'], ['直臂下压', '背'], ['面拉', '背'], ['硬拉', '背'],
@@ -880,6 +895,36 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     ['Pallof 推举', '核心'], ['绳索侧屈', '核心'], ['跪姿平板撑肩', '核心'],
   ];
   const SEED_MAP = new Map(SEED);
+
+  /* 次要部位：复合动作顺带练到的部位（最多 2 个） */
+  const SEED_ALSO = {
+    卧推: ['肩', '臂'], 上斜卧推: ['肩', '臂'], 下斜卧推: ['臂'], 哑铃卧推: ['肩', '臂'],
+    上斜哑铃卧推: ['肩', '臂'], 史密斯卧推: ['肩', '臂'], 器械推胸: ['臂'], 上斜器械推胸: ['臂'],
+    悍马机推胸: ['臂'], 单臂哑铃卧推: ['肩', '臂'], 地板卧推: ['臂'],
+    双杠臂屈伸: ['臂'], 负重双杠臂屈伸: ['臂'], 俯卧撑: ['肩', '臂'], 上斜俯卧撑: ['肩', '臂'],
+    下斜俯卧撑: ['肩', '臂'], 宽距俯卧撑: ['肩'], 钻石俯卧撑: ['臂'],
+    哑铃飞鸟: ['肩'], 上斜哑铃飞鸟: ['肩'], 蝴蝶机夹胸: ['肩'], 器械夹胸: ['肩'], 绳索夹胸: ['肩'],
+    引体向上: ['臂'], 反手引体向上: ['臂'], 辅助引体向上: ['臂'], 高位下拉: ['臂'],
+    窄距下拉: ['臂'], 器械高位下拉: ['臂'], 杠铃划船: ['臂', '核心'], 哑铃划船: ['臂', '核心'],
+    单臂哑铃划船: ['核心'], 坐姿划船: ['臂'], 坐姿绳索划船: ['臂'], T杠划船: ['臂', '核心'],
+    潘德雷划船: ['核心'], 悍马机划船: ['臂'], 硬拉: ['腿', '臀', '核心'], 山羊挺身: ['臀'],
+    耸肩: ['臂'], 面拉: ['肩'], 反向划船: ['臂'],
+    深蹲: ['臀', '核心'], 前蹲: ['臀', '核心'], 哈克深蹲: ['臀'], 史密斯深蹲: ['臀'],
+    腿举: ['臀'], 单腿腿举: ['臀'], 保加利亚分腿蹲: ['臀', '核心'], 箭步蹲: ['臀', '核心'],
+    腿弯举: ['臀'], 坐姿腿弯举: ['臀'], 弹力带深蹲: ['臀'],
+    罗马尼亚硬拉: ['臀', '背'], 直腿硬拉: ['臀', '背'], 泽奇深蹲: ['臀', '核心'],
+    臀推: ['腿'], 臀桥: ['腿'], 杠铃臀桥: ['腿'], 相扑硬拉: ['腿', '核心'],
+    单腿硬拉: ['腿', '核心'], 后撤步箭步蹲: ['腿'], 杠铃侧弓步: ['腿'], 杠铃登台阶: ['腿'],
+    肩推: ['臂'], 哑铃肩推: ['臂'], 阿诺德推举: ['臂'], 史密斯肩推: ['臂'], 器械推肩: ['臂'],
+    直立划船: ['背'], 窄距卧推: ['胸'],
+    波比跳: ['腿', '核心'], 高抬腿: ['腿'], 熊爬: ['核心'], 滑冰跳: ['腿'], 星星跳: ['腿'],
+    半蹲跳: ['腿', '臀'], 平板支撑: ['肩'], 'Pallof 推举': ['肩'],
+  };
+
+  /* 辅助配重类动作：重量是「帮了多少力」，不是负重 */
+  const SEED_ASSIST = ['辅助引体向上', '辅助双杠臂屈伸', '弹力带辅助引体'];
+  const isAssistName = (n) => SEED_ASSIST.indexOf(n) !== -1 || String(n || '').indexOf('辅助') !== -1;
+
   const DAY = 86400000;
   const REST_SEC = 90;
   const WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -902,6 +947,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
     return h ? h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
       : m + ':' + String(s).padStart(2, '0');
+  };
+  const trainElapsed = (s) => {
+    if (!s || !s.startAt) return 0;
+    const end = s.endAt || (s.pausedAt ? s.pausedAt : Date.now());
+    return Math.max(0, end - s.startAt - (s.pausedMs || 0));
   };
   const fmtDur = (ms) => {
     const m = Math.max(0, Math.round(ms / 60000));
@@ -994,9 +1044,14 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
               return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir, s.length > 3 ? Boolean(s[3]) : false];
             });
           if (!sets.length) continue;
+          const nm = it.name.slice(0, 20);
+          const pt = PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他');
           items.push({
-            name: it.name.slice(0, 20),
-            part: PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他'),
+            name: nm,
+            part: pt,
+            also: (Array.isArray(it.also) ? it.also : (SEED_ALSO[nm] || []))
+              .filter((p) => PARTS.indexOf(p) !== -1 && p !== pt).slice(0, 2),
+            assist: typeof it.assist === 'boolean' ? it.assist : isAssistName(nm),
             unit: (it.unit === '秒' || it.unit === '分' || it.unit === '次') ? it.unit : inferUnit(it.name, it.part),
             note: '',
             sets: sets,
@@ -1026,9 +1081,14 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
               return [Math.max(0, Number(s[0]) || 0), Math.max(1, Math.floor(Number(s[1]) || 1)), rir, s.length > 3 ? Boolean(s[3]) : false];
             });
           if (!sets.length) continue;
+          const nm = it.name.slice(0, 20);
+          const pt = PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他');
           items.push({
-            name: it.name.slice(0, 20),
-            part: PARTS.indexOf(it.part) !== -1 ? it.part : (SEED_MAP.get(it.name) || '其他'),
+            name: nm,
+            part: pt,
+            also: (Array.isArray(it.also) ? it.also : (SEED_ALSO[nm] || []))
+              .filter((p) => PARTS.indexOf(p) !== -1 && p !== pt).slice(0, 2),
+            assist: typeof it.assist === 'boolean' ? it.assist : isAssistName(nm),
             unit: (it.unit === '秒' || it.unit === '分' || it.unit === '次') ? it.unit : inferUnit(it.name, it.part),
             note: typeof it.note === 'string' ? it.note.slice(0, 80) : '',
             sets: sets,
@@ -1042,6 +1102,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           ab: abOn ? (v.ab === 'B' ? 'B' : 'A') : null,
           startAt: Number(v.startAt) || 0,
           endAt: Number(v.endAt) || 0,
+          pausedAt: Number(v.pausedAt) || 0,
+          pausedMs: Number(v.pausedMs) || 0,
           est: Boolean(v.est),
           items: items,
           updatedAt: Number(v.updatedAt) || 0,
@@ -1064,7 +1126,13 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         plan.push({ id: t, label: t.slice(0, 6), color: PLAN_COLORS[plan.length % PLAN_COLORS.length] });
       }
     });
-    return { plan: plan, abOn: abOn, sessions: sessions, exercises: exercises, templates: templates };
+    const overrides = {};
+    if (d && d.overrides && typeof d.overrides === 'object') {
+      Object.keys(d.overrides).forEach((k) => {
+        if (PARTS.indexOf(d.overrides[k]) !== -1) overrides[String(k).slice(0, 20)] = d.overrides[k];
+      });
+    }
+    return { plan: plan, abOn: abOn, overrides: overrides, sessions: sessions, exercises: exercises, templates: templates };
   }
 
   function load() {
@@ -1190,17 +1258,28 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   }
 
   /* ---- 渲染：当天 ---- */
-  function summaryOf(sets, unit) {
+  const setVol = (it, x) => ((it.assist || (it.unit && it.unit !== '次')) ? 0 : x[0] * x[1]);
+
+  function summaryOf(sets, unit, assist) {
     if (!sets || !sets.length) return '—';
     const u = unit || '次';
+    const pre = assist ? '辅' : '';
     if (u !== '次') {
       const same = sets.every((s) => s[1] === sets[0][1]);
-      if (same) return sets[0][1] + u + '×' + sets.length;
-      return sets.map((s) => s[1] + u).join(' / ');
+      if (same) return pre + sets[0][1] + u + '×' + sets.length;
+      return pre + sets.map((s) => s[1]).join('/') + u;
     }
-    const same = sets.every((s) => s[0] === sets[0][0] && s[1] === sets[0][1]);
-    if (same) return fmtW(sets[0][0]) + '×' + sets[0][1] + '×' + sets.length;
-    return sets.map((s) => fmtW(s[0]) + '×' + s[1]).join(' / ');
+    const wSame = sets.every((s) => s[0] === sets[0][0]);
+    const rSame = sets.every((s) => s[1] === sets[0][1]);
+    if (wSame && rSame) return pre + fmtW(sets[0][0]) + '×' + sets[0][1] + '×' + sets.length;
+    if (wSame) return pre + fmtW(sets[0][0]) + '×' + sets.map((s) => s[1]).join('/');
+    const groups = [];
+    sets.forEach((s) => {
+      const last = groups[groups.length - 1];
+      if (last && last.w === s[0] && last.r === s[1]) last.n += 1;
+      else groups.push({ w: s[0], r: s[1], n: 1 });
+    });
+    return pre + groups.map((g) => fmtW(g.w) + '×' + g.r + (g.n > 1 ? '×' + g.n : '')).join(', ');
   }
 
   function prevItem(name) {
@@ -1208,7 +1287,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     for (let i = rows.length - 1; i >= 0; i--) {
       const it = rows[i][1].items.filter((x) => x.name === name)[0];
       if (it) {
-        const best = it.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), it.sets[0]);
+        const best = it.assist
+          ? it.sets.reduce((a, b) => (b[0] < a[0] || (b[0] === a[0] && b[1] > a[1]) ? b : a), it.sets[0])
+          : it.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), it.sets[0]);
         return { date: rows[i][0], best: best, n: it.sets.length };
       }
     }
@@ -1230,8 +1311,30 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     return best;
   }
 
+  function assistPR(it) {
+    const hist = [];
+    for (const k of Object.keys(state.sessions)) {
+      if (k >= selKey) continue;
+      for (const x of state.sessions[k].items) {
+        if (x.name !== it.name) continue;
+        x.sets.forEach((st) => hist.push(st));
+      }
+    }
+    if (!hist.length) return null;
+    for (const st of it.sets) {
+      const dominated = hist.some((h) => h[0] <= st[0] && h[1] >= st[1] && (h[0] < st[0] || h[1] > st[1]));
+      const equal = hist.some((h) => h[0] === st[0] && h[1] === st[1]);
+      if (!dominated && !equal) {
+        const bestHist = hist.reduce((a, b) => (b[0] < a[0] || (b[0] === a[0] && b[1] > a[1]) ? b : a), hist[0]);
+        return { set: st, assist: true, old: bestHist };
+      }
+    }
+    return null;
+  }
+
   function itemPR(it) {
     if (!it.sets.length) return null;
+    if (it.assist) return assistPR(it);
     const best = bestE1Before(it.name, selKey);
     if (!best) return null;
     const top = it.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), it.sets[0]);
@@ -1251,17 +1354,19 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       } else {
         lastTxt = '上次 ' + last.date.slice(5).replace('-', '/') + '：' + fmtW(last.best[0]) + '×' +
           last.best[1] + '×' + last.n;
-        lastTxt += last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次';
+        lastTxt += it.assist
+          ? '，可试 ' + Math.max(0, last.best[0] - 2.5) + 'kg（减辅助）'
+          : (last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次');
       }
     }
-    const ivol = timed ? 0 : it.sets.reduce((a, x) => a + x[0] * x[1], 0);
+    const ivol = timed ? 0 : it.sets.reduce((a, x) => a + setVol(it, x), 0);
     if (ivol) lastTxt += '；本次容量 ' + fmtVol(ivol);
     const setsHtml = it.sets.map((x, si) =>
       '<div class="setrow' + (x[3] ? ' done' : '') + '">' +
         (timed ? '' :
           '<input type="number" step="0.5" min="0" inputmode="decimal" value="' + x[0] + '" data-i="' + i +
             '" data-s="' + si + '" data-f="w" aria-label="重量 kg">' +
-          '<span>kg ×</span>') +
+          '<span>' + (it.assist ? '辅助 kg ×' : 'kg ×') + '</span>') +
         '<input type="number" step="' + (it.unit === '分' ? '0.5' : '1') + '" min="' + (it.unit === '分' ? '0.5' : '1') +
           '" inputmode="' + (it.unit === '分' ? 'decimal' : 'numeric') + '" value="' + x[1] + '" data-i="' + i +
           '" data-s="' + si + '" data-f="r" aria-label="' + u + '">' +
@@ -1279,9 +1384,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     return '<div class="item' + (open ? ' open' : '') + (pr ? ' pr' : '') + '">' +
       '<button type="button" class="itemhead" data-act="toggle" data-i="' + i + '" aria-expanded="' + open + '">' +
         '<span class="ipart">' + esc(it.part) + '</span>' +
+        ((it.also && it.also.length) ? '<span class="ialso">+' + it.also.map(esc).join(' +') + '</span>' : '') +
         '<span class="iname">' + esc(it.name) + '</span>' +
         (pr ? '<span class="prbadge">🏆 PR</span>' : '') +
-        '<span class="isets">' + summaryOf(it.sets, it.unit) + '</span>' +
+        '<span class="isets">' + summaryOf(it.sets, it.unit, it.assist) + '</span>' +
         '<span class="iedit">' + (open ? '收起' : '编辑') + '</span>' +
       '</button>' +
       (open ? '<div class="detail">' +
@@ -1290,6 +1396,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<div class="detailrow">' +
           '<button type="button" class="mini" data-act="addSet" data-i="' + i + '">+ 加一组</button>' +
           '<button type="button" class="mini" data-act="delLastSet" data-i="' + i + '">− 减一组</button>' +
+          '<button type="button" class="mini" data-act="part" data-i="' + i + '">改部位</button>' +
           '<button type="button" class="mini" data-act="chart" data-i="' + i + '">趋势</button>' +
           '<input class="note" data-i="' + i + '" data-f="note" value="' + esc(it.note) + '" placeholder="备注（可选）">' +
           '<button type="button" class="mini danger" data-act="delItem" data-i="' + i + '">删除动作</button>' +
@@ -1298,20 +1405,24 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     '</div>';
   }
 
+  function partOf(name) {
+    return state.overrides[name] || SEED_MAP.get(name) || state.exercises[name] || null;
+  }
+
   function datalist(part) {
     const names = {};
-    SEED.forEach((s) => { if (!part || s[1] === part) names[s[0]] = 1; });
+    SEED.forEach((s) => { if (!part || partOf(s[0]) === part) names[s[0]] = 1; });
     Object.keys(state.exercises).forEach((n) => {
-      if (!part || state.exercises[n] === part) names[n] = 1;
+      if (!part || partOf(n) === part) names[n] = 1;
     });
     return Object.keys(names).map((n) => '<option value="' + esc(n) + '">').join('');
   }
 
   function quickList(part) {
     const names = {};
-    SEED.forEach((s) => { if (s[1] === part) names[s[0]] = 1; });
+    SEED.forEach((s) => { if (partOf(s[0]) === part) names[s[0]] = 1; });
     Object.keys(state.exercises).forEach((n) => {
-      if (state.exercises[n] === part) names[n] = 1;
+      if (partOf(n) === part) names[n] = 1;
     });
     return Object.keys(names).map((n) =>
       '<button type="button" class="qchip" data-name="' + esc(n) + '">' + esc(n) + '</button>').join('');
@@ -1345,7 +1456,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const itemsHtml = s.items.map((it, i) => itemRow(it, i)).join('');
 
     let vol = 0, setsN = 0;
-    s.items.forEach((it) => it.sets.forEach((x) => { setsN += 1; vol += x[0] * x[1]; }));
+    s.items.forEach((it) => it.sets.forEach((x) => { setsN += 1; vol += setVol(it, x); }));
     const pc = {};
     s.items.forEach((it) => { pc[it.part] = (pc[it.part] || 0) + it.sets.length; });
     const partList = PARTS.filter((p) => pc[p]).map((p) =>
@@ -1361,13 +1472,19 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
     const sess = state.sessions[selKey];
     let tb;
-    if (sess && sess.startAt && !sess.endAt) {
+    if (sess && sess.startAt && !sess.endAt && sess.pausedAt) {
+      tb = '<div class="trainbar pause"><span class="tblabel">已暂停</span><b>' +
+        clockText(trainElapsed(sess)) + '</b>' +
+        '<button type="button" data-act="resumeTrain">继续</button>' +
+        '<button type="button" data-act="stopTrain">结束</button></div>';
+    } else if (sess && sess.startAt && !sess.endAt) {
       tb = '<div class="trainbar run"><span class="tblabel">训练中</span><b id="trainClock">' +
-        clockText(Date.now() - sess.startAt) + '</b>' +
+        clockText(trainElapsed(sess)) + '</b>' +
+        '<button type="button" data-act="pauseTrain">暂停</button>' +
         '<button type="button" data-act="stopTrain">结束</button></div>';
     } else if (sess && sess.startAt && sess.endAt) {
       tb = '<div class="trainbar"><span class="tblabel">训练时长</span><b>' +
-        (sess.est ? '约 ' : '') + fmtDur(sess.endAt - sess.startAt) + '</b>' +
+        (sess.est ? '约 ' : '') + fmtDur(trainElapsed(sess)) + '</b>' +
         '<button type="button" data-act="editTrain">改</button></div>';
     } else {
       tb = '<div class="trainbar"><span class="tblabel">训练时长</span><b>—</b>' +
@@ -1442,7 +1559,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       days += 1;
       s.items.forEach((it) => {
         let v = 0;
-        it.sets.forEach((x) => { v += x[0] * x[1]; });
+        it.sets.forEach((x) => { v += setVol(it, x); });
         sets[it.part] = (sets[it.part] || 0) + it.sets.length;
         vols[it.part] = (vols[it.part] || 0) + v;
         totalSets += it.sets.length;
@@ -1471,7 +1588,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     let best = null;
     for (const k of Object.keys(state.sessions)) {
       if (k > todayKey) continue;
-      if (state.sessions[k].items.some((it) => it.part === part) && (!best || k > best)) best = k;
+      if (state.sessions[k].items.some((it) => it.part === part || (it.also || []).indexOf(part) !== -1)
+        && (!best || k > best)) best = k;
     }
     return best;
   }
@@ -1482,14 +1600,18 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       if (k > todayKey) continue;
       const age = dayNum(todayKey) - dayNum(k);
       if (age > 10) continue;
-      let sets = 0, vol = 0;
+      let mSets = 0, mVol = 0, sSets = 0, sVol = 0;
       state.sessions[k].items.forEach((it) => {
-        if (it.part !== part) return;
-        sets += it.sets.length;
-        it.sets.forEach((x) => { vol += x[0] * x[1]; });
+        const isMain = it.part === part;
+        const isSec = (it.also || []).indexOf(part) !== -1;
+        if (!isMain && !isSec) return;
+        const vol = it.sets.reduce((a, x) => a + setVol(it, x), 0);
+        if (isMain) { mSets += it.sets.length; mVol += vol; }
+        if (isSec) { sSets += it.sets.length; sVol += vol; }
       });
-      if (!sets) continue;
-      load += (sets + vol / 4000) * Math.pow(0.5, age / 2.5);
+      if (!mSets && !sSets) continue;
+      load += (mSets + mVol / 4000) * Math.pow(0.5, age / 2.5);
+      load += 0.35 * (sSets + sVol / 4000) * Math.pow(0.5, age / 1.875);
     }
     return Math.max(0, Math.min(100, Math.round(100 - (load / 18) * 100)));
   }
@@ -1504,13 +1626,19 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
   function sessionFill(s) {
     const counts = {};
-    s.items.forEach((it) => { counts[it.part] = (counts[it.part] || 0) + it.sets.length; });
+    const sec = {};
+    s.items.forEach((it) => {
+      counts[it.part] = (counts[it.part] || 0) + it.sets.length;
+      (it.also || []).forEach((p) => { sec[p] = (sec[p] || 0) + it.sets.length; });
+    });
     return (part) => {
       let n = counts[part] || 0;
       let key = part;
       if (!n && (part === '臀' || part === '小腿')) { n = counts['腿'] || 0; key = '腿'; }
-      if (!n) return { fill: 'var(--muscle)', op: 1 };
-      return { fill: PART_COLORS[key] || '#e5484d', op: Math.min(0.95, 0.35 + n * 0.09) };
+      if (n) return { fill: PART_COLORS[key] || '#e5484d', op: Math.min(0.95, 0.35 + n * 0.09) };
+      const m = sec[part] || 0;
+      if (m) return { fill: PART_COLORS[part] || '#e5484d', op: Math.min(0.5, 0.16 + m * 0.05) };
+      return { fill: 'var(--muscle)', op: 1 };
     };
   }
 
@@ -1602,17 +1730,35 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   function openChart(i) {
     const it = cur().items[i];
     if (!it) return;
+    const assist = it.assist || isAssistName(it.name);
     const hist = [];
     for (const k of Object.keys(state.sessions)) {
       const s = state.sessions[k];
       const x = s.items.filter((y) => y.name === it.name)[0];
       if (!x || !x.sets.length) continue;
-      const best = x.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), x.sets[0]);
-      hist.push({ k: k, best: best, v: e1(best) });
+      let best, v;
+      if (assist) {
+        best = x.sets.reduce((a, b) => (b[0] < a[0] || (b[0] === a[0] && b[1] > a[1]) ? b : a), x.sets[0]);
+        v = best[0];
+      } else {
+        best = x.sets.reduce((a, b) => (e1(b) > e1(a) ? b : a), x.sets[0]);
+        v = e1(best);
+      }
+      hist.push({ k: k, best: best, v: v });
     }
     hist.sort((a, b) => (a.k < b.k ? -1 : 1));
-    const pr = hist.reduce((m, r) => (r.v > m.v ? r : m), hist[0]);
     $('#mTitle').textContent = it.name;
+    if (assist) {
+      const low = hist.reduce((m, r) => (r.v < m.v ? r : m), hist[0]);
+      $('#mPr').textContent = hist.length + ' 次记录 · 最低辅助 ' + fmtW(low.v) + ' kg（' + low.k + '）· 越低越好';
+      $('#mChart').innerHTML = spark(hist.slice(-10));
+      $('#mList').innerHTML = hist.slice(-8).reverse().map((r) =>
+        '<div class="hist"><span>' + r.k.slice(5) + '</span><b>辅' + fmtW(r.best[0]) + '×' + r.best[1] +
+        '</b><span>' + fmtW(r.v) + ' kg 辅助</span></div>').join('');
+      $('#tModal').hidden = false;
+      return;
+    }
+    const pr = hist.reduce((m, r) => (r.v > m.v ? r : m), hist[0]);
     $('#mPr').textContent = hist.length + ' 次记录 · 估算 1RM 最高 ' + pr.v.toFixed(1) + ' kg（' + pr.k + '）';
     $('#mChart').innerHTML = spark(hist.slice(-10));
     $('#mList').innerHTML = hist.slice(-8).reverse().map((r) =>
@@ -1653,11 +1799,12 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const rawR = Number($('#exR').value) || (timed ? (addUnit === '分' ? 1 : 20) : 8);
     const r = (timed && addUnit === '分') ? Math.max(0.1, Math.round(rawR * 10) / 10) : Math.max(1, Math.floor(rawR));
     const n = Math.max(1, Math.floor(Number($('#exS').value) || (timed ? 1 : 3)));
-    const part = SEED_MAP.get(name) || state.exercises[name] || addPart;
+    const part = partOf(name) || addPart;
+    const also = (SEED_ALSO[name] || []).filter((p) => p !== part).slice(0, 2);
     const s = ensure();
     const sets = [];
     for (let i = 0; i < n; i++) sets.push([w, r, null, false]);
-    s.items.push({ name: name, part: part, unit: unit, note: '', sets: sets });
+    s.items.push({ name: name, part: part, also: also, assist: isAssistName(name), unit: unit, note: '', sets: sets });
     state.exercises[name] = part;
     addPart = part;
     expanded = s.items.length - 1;
@@ -1666,8 +1813,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const added = s.items[s.items.length - 1];
     const pr = itemPR(added);
     if (pr) {
-      showToast('🎉 ' + name + ' 新纪录 ' + fmtW(pr.set[0]) + '×' + pr.set[1] +
-        '（e1RM ' + pr.v.toFixed(1) + '）');
+      showToast(pr.assist
+        ? '🎉 ' + name + ' 辅助降到 ' + fmtW(pr.set[0]) + 'kg×' + pr.set[1] +
+          '（上次 ' + fmtW(pr.old[0]) + 'kg×' + pr.old[1] + '）'
+        : '🎉 ' + name + ' 新纪录 ' + fmtW(pr.set[0]) + '×' + pr.set[1] +
+          '（e1RM ' + pr.v.toFixed(1) + '）');
     }
     const again = $('#exName');
     if (again) { again.value = ''; again.focus(); }
@@ -1688,7 +1838,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         hint.textContent = '上次「' + name + '」' + last.best[1] + addUnit + '×' + last.n;
       } else if (last) {
         hint.textContent = '上次「' + name + '」' + fmtW(last.best[0]) + '×' + last.best[1] + '×' + last.n +
-          (last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次');
+          (isAssistName(name)
+            ? '，可试 ' + Math.max(0, last.best[0] - 2.5) + 'kg（减辅助）'
+            : (last.best[0] > 0 ? '，可试 ' + (last.best[0] + 2.5) + 'kg' : '，试试多 1 次'));
       } else if (name) {
         hint.textContent = '「' + name + '」没有历史记录，先定个基准。';
       } else {
@@ -1796,6 +1948,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   let restIv = null;
   let restSet = 0;
   let restTotal = 0;
+  let restPausedMs = 0;
 
   function updateRestUI() {
     const label = $('#restLabel');
@@ -1815,8 +1968,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       restSet = 0;
     }
     restEnd = Date.now() + (sec === undefined ? REST_SEC : sec) * 1000;
+    restPausedMs = 0;
     bar.hidden = false;
     bar.classList.remove('done');
+    bar.classList.remove('paused');
     updateRestUI();
     tickRest();
     clearInterval(restIv);
@@ -1853,11 +2008,35 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     startRest(REST_SEC);
   }
 
-  function stopRest() {
+  function pauseRest() {
+    if (!restIv || restEnd <= Date.now()) return;
+    restPausedMs = restEnd - Date.now();
     clearInterval(restIv);
     restIv = null;
     const bar = $('#restBar');
-    if (bar) bar.hidden = true;
+    if (bar && !bar.hidden) bar.classList.add('paused');
+    const label = $('#restLabel');
+    if (label) label.textContent = '休息暂停';
+  }
+
+  function resumeRest() {
+    if (!(restPausedMs > 0)) return;
+    restEnd = Date.now() + restPausedMs;
+    restPausedMs = 0;
+    const bar = $('#restBar');
+    if (bar) bar.classList.remove('paused');
+    updateRestUI();
+    clearInterval(restIv);
+    restIv = setInterval(tickRest, 250);
+    tickRest();
+  }
+
+  function stopRest() {
+    clearInterval(restIv);
+    restIv = null;
+    restPausedMs = 0;
+    const bar = $('#restBar');
+    if (bar) { bar.hidden = true; bar.classList.remove('paused'); }
     restTotal = 0;
     restSet = 0;
   }
@@ -2087,12 +2266,13 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const w = Math.max(0, Number($('#teW').value) || 0);
     const r = Math.max(1, Math.floor(Number($('#teR').value) || 8));
     const n = Math.max(1, Math.floor(Number($('#teS').value) || 3));
-    const part = SEED_MAP.get(name) || state.exercises[name] || te.part;
+    const part = partOf(name) || te.part;
     if (!state.templates[te.kind]) state.templates[te.kind] = { items: [], updatedAt: Date.now() };
     const items = state.templates[te.kind].items;
     const sets = [];
     for (let k = 0; k < n; k++) sets.push([w, r, null]);
-    items.push({ name: name, part: part, unit: inferUnit(name, part), note: '', sets: sets });
+    items.push({ name: name, part: part, also: (SEED_ALSO[name] || []).filter((p) => p !== part).slice(0, 2),
+      assist: isAssistName(name), unit: inferUnit(name, part), note: '', sets: sets });
     state.exercises[name] = part;
     te.part = part;
     te.open = items.length - 1;
@@ -2106,6 +2286,34 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (e.key === 'Enter') { e.preventDefault(); tplAddItem(); }
   });
   $('#teClose').addEventListener('click', closeTplEdit);
+
+  /* ---- 部位选择 ---- */
+  let partCb = null;
+  function openPartPick(title, desc, cur, cb) {
+    $('#partTitle').textContent = title;
+    $('#partDesc').textContent = desc || '';
+    $('#partPick').innerHTML = PARTS.map((p) =>
+      '<button type="button" class="pchip' + (p === cur ? ' on' : '') + '" data-pk="' + esc(p) + '">' +
+      esc(p) + '</button>').join('');
+    partCb = cb;
+    $('#partModal').hidden = false;
+  }
+  function closePartPick() {
+    partCb = null;
+    $('#partModal').hidden = true;
+  }
+  $('#partPick').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-pk]');
+    if (!b) return;
+    const v = b.dataset.pk;
+    const cb = partCb;
+    closePartPick();
+    if (cb) cb(v);
+  });
+  $('#partClose').addEventListener('click', closePartPick);
+  $('#partModal').addEventListener('click', (e) => {
+    if (e.target.id === 'partModal') closePartPick();
+  });
 
   /* ---- 训练日设置 ---- */
   function renderPlan() {
@@ -2224,7 +2432,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const s = state.sessions[selKey];
     if (!s) return;
     let vol = 0, setsN = 0;
-    s.items.forEach((it) => it.sets.forEach((x) => { setsN += 1; vol += x[0] * x[1]; }));
+    s.items.forEach((it) => it.sets.forEach((x) => { setsN += 1; vol += setVol(it, x); }));
     const el = $('#tDay .daysum');
     if (el) {
       el.textContent = s.items.length
@@ -2295,7 +2503,30 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       if (act === 'stopTrain') {
         const day = ensure();
         if (!day.startAt) day.startAt = Date.now();
+        if (day.pausedAt) {
+          day.pausedMs = (day.pausedMs || 0) + (Date.now() - day.pausedAt);
+          day.pausedAt = 0;
+        }
         day.endAt = Date.now();
+        persist();
+        renderDay();
+        return;
+      }
+      if (act === 'pauseTrain') {
+        const day = ensure();
+        if (!day.startAt || day.endAt || day.pausedAt) return;
+        day.pausedAt = Date.now();
+        pauseRest();
+        persist();
+        renderDay();
+        return;
+      }
+      if (act === 'resumeTrain') {
+        const day = ensure();
+        if (!day.pausedAt) return;
+        day.pausedMs = (day.pausedMs || 0) + (Date.now() - day.pausedAt);
+        day.pausedAt = 0;
+        resumeRest();
         persist();
         renderDay();
         return;
@@ -2303,12 +2534,12 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       if (act === 'editTrain') {
         const day = ensure();
         if (!day.startAt) return;
-        const now = Math.max(1, Math.round((day.endAt - day.startAt) / 60000));
+        const now = Math.max(1, Math.round(trainElapsed(day) / 60000));
         const v = window.prompt('这次训练多少分钟？（只改时长，开始时间不变）', String(now));
         if (v === null) return;
         const m = Number(v);
         if (!isFinite(m) || m <= 0) { showToast('请输入分钟数'); return; }
-        day.endAt = day.startAt + Math.round(m) * 60000;
+        day.endAt = day.startAt + Math.round(m) * 60000 + (day.pausedMs || 0);
         day.est = false;
         persist();
         renderDay();
@@ -2343,6 +2574,42 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           persist();
           renderAll();
         }
+        return;
+      }
+      if (act === 'part') {
+        const day = ensure();
+        const it = day.items[i];
+        if (!it) return;
+        openPartPick('「' + it.name + '」改到哪个部位',
+          '会记住这个动作的部位，以后添加时自动带出。', it.part, (v) => {
+            if (v === it.part) return;
+            const days = Object.keys(state.sessions).filter((k) =>
+              state.sessions[k].items.some((x) => x.name === it.name && x.part !== v));
+            const doIt = () => {
+              state.overrides[it.name] = v;
+              state.exercises[it.name] = v;
+              Object.keys(state.sessions).forEach((k) => {
+                state.sessions[k].items.forEach((x) => {
+                  if (x.name !== it.name) return;
+                  x.part = v;
+                  x.also = (x.also || []).filter((p) => p !== v);
+                });
+              });
+              persist();
+              renderAll();
+              showToast('「' + it.name + '」已改为' + v);
+            };
+            it.part = v;
+            if (days.length && !confirm('这个动作有 ' + days.length + ' 天历史记录，一起改成「' + v + '」？')) {
+              state.overrides[it.name] = v;
+              state.exercises[it.name] = v;
+              persist();
+              renderAll();
+              showToast('只改了这一次，历史记录保持原样');
+              return;
+            }
+            doIt();
+          });
         return;
       }
       if (act === 'chart') { openChart(Number(btn.dataset.i)); return; }
@@ -2535,6 +2802,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       $('#tplModal').hidden = true;
       $('#planModal').hidden = true;
       closeTplEdit();
+      closePartPick();
     }
   });
 
@@ -2793,7 +3061,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (!el) return;
     const sess = state.sessions[selKey];
     if (!sess || !sess.startAt || sess.endAt) return;
-    el.textContent = clockText(Date.now() - sess.startAt);
+    el.textContent = clockText(trainElapsed(sess));
   }, 1000);
 
   renderBackupTip();
