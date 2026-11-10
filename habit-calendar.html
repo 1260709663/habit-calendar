@@ -236,9 +236,18 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .trainbar.pause b{color:var(--muted)}
 .trainbar button:hover{border-color:#3b6fe0;color:#3b6fe0}
 .trainbar.run{border-color:#3b6fe055;background:color-mix(in srgb,#3b6fe0 6%,transparent)}
-.feelcard{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;
-  border:1px solid var(--line);border-radius:12px;font-size:13px}
-.feelcard .flabel{color:var(--muted);font-size:12px;flex:none}
+.repcard{margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:13px}
+.rhead{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600;
+  color:var(--muted);letter-spacing:.5px;margin-bottom:8px}
+.rline{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin:4px 0;
+  font-variant-numeric:tabular-nums}
+.rline .rkey{color:var(--muted);font-size:12px;min-width:30px}
+.rsep{color:var(--muted);opacity:.45}
+.rmuted{color:var(--muted);font-size:11px}
+.rdelta{font-size:11px;padding:1px 7px;border-radius:999px}
+.rdelta.up{color:#3b6fe0;background:#3b6fe014}
+.rdelta.down{color:var(--muted);background:var(--cell)}
+.feeline{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .feelbtn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;
   padding:4px 14px;font-size:12px}
 .feelbtn:hover{border-color:#3b6fe0;color:#3b6fe0}
@@ -1382,6 +1391,87 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     return e1(top) > best.v + 1e-9 ? { set: top, v: e1(top), old: best.v } : null;
   }
 
+  function reportCard(s) {
+    const items = s.items || [];
+    const ws = [];
+    let vol = 0, warmN = 0;
+    items.forEach((it) => {
+      const w = workSets(it);
+      w.forEach((x) => ws.push(x));
+      vol += w.reduce((a, x) => a + setVol(it, x), 0);
+      warmN += (it.sets || []).filter((x) => x[4]).length;
+    });
+    const setsN = ws.length;
+    const doneN = ws.filter((x) => x[3]).length;
+    const rirLow = ws.filter((x) => typeof x[2] === 'number' && x[2] <= 1).length;
+    const rirHigh = ws.filter((x) => typeof x[2] === 'number' && x[2] >= 4).length;
+    const parts = [];
+    items.forEach((it) => { if (parts.indexOf(it.part) === -1) parts.push(it.part); });
+
+    const prev = lastSameAb(s.type, s.ab, selKey);
+    const prevS = prev ? prev[1] : null;
+    let prevVol = 0;
+    const prevParts = [];
+    if (prevS) {
+      prevS.items.forEach((it) => {
+        prevVol += workSets(it).reduce((a, x) => a + setVol(it, x), 0);
+        if (prevParts.indexOf(it.part) === -1) prevParts.push(it.part);
+      });
+    }
+    const lost = prevParts.filter((p) => parts.indexOf(p) === -1);
+    const prs = [];
+    items.forEach((it) => { if (itemPR(it)) prs.push(it.name); });
+
+    const rows = [];
+    rows.push('<div class="rline"><b>' + fmtDur(trainElapsed(s)) + '</b>' +
+      (s.est ? '<span class="rmuted">约</span>' : '') +
+      '<span class="rsep">·</span>' + setsN + ' 组' +
+      (setsN ? (doneN === setsN ? '（全完成）' : '（' + doneN + '/' + setsN + '）') : '') +
+      (warmN ? '<span class="rmuted">含 ' + warmN + ' 组热身</span>' : '') + '</div>');
+
+    if (vol > 0) {
+      let d = '';
+      if (prevVol > 0) {
+        const pct = Math.round(((vol - prevVol) / prevVol) * 100);
+        d = '<span class="rdelta ' + (pct >= 0 ? 'up' : 'down') + '">比上次 ' +
+          (pct >= 0 ? '+' : '') + pct + '%</span>';
+      } else if (prevS) {
+        d = '<span class="rmuted">上次没记录到容量</span>';
+      }
+      rows.push('<div class="rline"><span class="rkey">容量</span>' + fmtVol(vol) + d + '</div>');
+    }
+
+    if (rirLow || rirHigh) {
+      rows.push('<div class="rline"><span class="rkey">强度</span>' +
+        (rirLow ? rirLow + ' 组 RIR≤1' : '') +
+        (rirLow && rirHigh ? '<span class="rsep">·</span>' : '') +
+        (rirHigh ? rirHigh + ' 组 RIR≥4' : '') + '</div>');
+    }
+
+    if (parts.length) {
+      rows.push('<div class="rline"><span class="rkey">部位</span>' + parts.join(' ') +
+        (lost.length ? '<span class="rmuted">上次还有 ' + lost.join(' ') + '</span>' : '') + '</div>');
+    }
+
+    if (prs.length) {
+      rows.push('<div class="rline"><span class="rkey">纪录</span>🏆 ' +
+        prs.slice(0, 3).join('、') + (prs.length > 3 ? ' 等 ' + prs.length + ' 项' : '') + '</div>');
+    }
+
+    const fv = s.feel || '';
+    const feel = '<div class="feeline">' + ['easy', 'ok', 'hard'].map((v, k) => {
+      const t = ['轻松', '刚好', '吃力'][k];
+      return '<button type="button" class="feelbtn' + (fv === v ? ' on' : '') +
+        '" data-act="feel" data-v="' + v + '">' + t + '</button>';
+    }).join('') + '</div>';
+
+    return '<div class="repcard"><div class="rhead"><span>本次训练 · ' +
+      esc(labelOf(s.type) + (s.ab || '')) + '</span>' +
+      (prevS ? '<span class="rmuted">对比 ' + prev[0].slice(5) + '</span>'
+        : '<span class="rmuted">这个类型第一次</span>') +
+      '</div>' + rows.join('') + feel + '</div>';
+  }
+
   function itemRow(it, i) {
     const open = expanded === i;
     const last = prevItem(it.name);
@@ -1539,15 +1629,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       tb = '<div class="trainbar"><span class="tblabel">训练时长</span><b>—</b>' +
         '<button type="button" data-act="startTrain">开始训练</button></div>';
     }
-    let feelHtml = '';
-    if (sess && sess.endAt) {
-      const fv = sess.feel || '';
-      feelHtml = '<div class="feelcard"><span class="flabel">这次练完</span>' +
-        [['easy', '轻松'], ['ok', '刚好'], ['hard', '吃力']].map((p) =>
-          '<button type="button" class="feelbtn' + (fv === p[0] ? ' on' : '') +
-          '" data-act="feel" data-v="' + p[0] + '">' + p[1] + '</button>').join('') +
-        '<span class="fhint">' + (fv ? '已记录' : '点一下就好') + '</span></div>';
-    }
+    const feelHtml = (sess && sess.endAt) ? reportCard(sess) : '';
     const durTxt = (sess && sess.startAt && sess.endAt)
       ? ' · ' + (sess.est ? '约 ' : '') + fmtDur(sess.endAt - sess.startAt) : '';
 
