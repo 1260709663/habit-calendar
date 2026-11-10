@@ -236,6 +236,14 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .trainbar.pause b{color:var(--muted)}
 .trainbar button:hover{border-color:#3b6fe0;color:#3b6fe0}
 .trainbar.run{border-color:#3b6fe055;background:color-mix(in srgb,#3b6fe0 6%,transparent)}
+.feelcard{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:12px;font-size:13px}
+.feelcard .flabel{color:var(--muted);font-size:12px;flex:none}
+.feelbtn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;
+  padding:4px 14px;font-size:12px}
+.feelbtn:hover{border-color:#3b6fe0;color:#3b6fe0}
+.feelbtn.on{background:#3b6fe0;border-color:transparent;color:#fff}
+.feelcard .fhint{font-size:11px;color:var(--muted);margin-left:auto}
 .trainbar .est{color:var(--muted);font-size:11px}
 .addrow input,.addrow select{border:1px solid var(--line);border-radius:8px;background:transparent;
   color:var(--ink);padding:7px 9px;font:inherit;font-size:13px;min-width:0}
@@ -1118,6 +1126,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           endAt: Number(v.endAt) || 0,
           pausedAt: Number(v.pausedAt) || 0,
           pausedMs: Number(v.pausedMs) || 0,
+          feel: (v.feel === 'easy' || v.feel === 'ok' || v.feel === 'hard') ? v.feel : null,
           est: Boolean(v.est),
           items: items,
           updatedAt: Number(v.updatedAt) || 0,
@@ -1530,6 +1539,15 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       tb = '<div class="trainbar"><span class="tblabel">训练时长</span><b>—</b>' +
         '<button type="button" data-act="startTrain">开始训练</button></div>';
     }
+    let feelHtml = '';
+    if (sess && sess.endAt) {
+      const fv = sess.feel || '';
+      feelHtml = '<div class="feelcard"><span class="flabel">这次练完</span>' +
+        [['easy', '轻松'], ['ok', '刚好'], ['hard', '吃力']].map((p) =>
+          '<button type="button" class="feelbtn' + (fv === p[0] ? ' on' : '') +
+          '" data-act="feel" data-v="' + p[0] + '">' + p[1] + '</button>').join('') +
+        '<span class="fhint">' + (fv ? '已记录' : '点一下就好') + '</span></div>';
+    }
     const durTxt = (sess && sess.startAt && sess.endAt)
       ? ' · ' + (sess.est ? '约 ' : '') + fmtDur(sess.endAt - sess.startAt) : '';
 
@@ -1556,6 +1574,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '</div>' +
       '</div>' +
       tb +
+      feelHtml +
       '<div class="items">' +
         (itemsHtml || '<p class="emptyday">还没有动作。先在下面选部位，再挑一个动作，或者复制上次同类型。</p>') +
       '</div>' +
@@ -2678,6 +2697,14 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
             renderDay();
             showToast(cnt > 0 ? '已加 ' + cnt + ' 组热身' : '已清除热身组');
           });
+        return;
+      }
+      if (act === 'feel') {
+        const day = ensure();
+        const v = btn.dataset.v;
+        day.feel = day.feel === v ? null : v;
+        persist();
+        renderDay();
         return;
       }
       if (act === 'part') {
