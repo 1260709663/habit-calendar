@@ -1406,7 +1406,13 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const rirLow = ws.filter((x) => typeof x[2] === 'number' && x[2] <= 1).length;
     const rirHigh = ws.filter((x) => typeof x[2] === 'number' && x[2] >= 4).length;
     const parts = [];
-    items.forEach((it) => { if (parts.indexOf(it.part) === -1) parts.push(it.part); });
+    const secParts = [];
+    items.forEach((it) => {
+      if (parts.indexOf(it.part) === -1) parts.push(it.part);
+      (it.also || []).forEach((p) => {
+        if (parts.indexOf(p) === -1 && secParts.indexOf(p) === -1) secParts.push(p);
+      });
+    });
 
     const prev = lastSameAb(s.type, s.ab, selKey);
     const prevS = prev ? prev[1] : null;
@@ -1450,6 +1456,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 
     if (parts.length) {
       rows.push('<div class="rline"><span class="rkey">部位</span>' + parts.join(' ') +
+        (secParts.length ? '<span class="rmuted">+' + secParts.join(' +') + '</span>' : '') +
         (lost.length ? '<span class="rmuted">上次还有 ' + lost.join(' ') + '</span>' : '') + '</div>');
     }
 
