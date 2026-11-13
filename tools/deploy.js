@@ -40,7 +40,8 @@ const die = (msg) => { console.error('\n' + c.red('✗ ' + msg)); process.exit(1
 const note = (msg) => console.log('    ' + c.dim(msg));
 
 function git(argv, opts) {
-  return execFileSync('git', argv, Object.assign({ cwd: ROOT, encoding: 'utf8' }, opts)).trim();
+  const out = execFileSync('git', argv, Object.assign({ cwd: ROOT, encoding: 'utf8' }, opts));
+  return out == null ? '' : String(out).trim();
 }
 
 function authArgs() {
