@@ -149,7 +149,13 @@ async function fetchPage(url) {
   // 5. 推送
   step(5, '推送');
   const target = git(['rev-parse', 'HEAD']);
-  if (!(await pushWithRetry(4))) die('推送失败（已重试 4 次）。可改用 tmp/replay-remote.js');
+  let pushed = await pushWithRetry(3);
+  if (!pushed) {
+    note('git push 不通，改用 API 重放兜底…');
+    const r = spawnSync(process.execPath, [path.join(__dirname, 'push.js')], { cwd: ROOT, stdio: 'inherit' });
+    pushed = r.status === 0;
+  }
+  if (!pushed) die('推送失败：git 与 API 重放都不可用');
   note('推送成功');
 
   // 6. 校验线上
