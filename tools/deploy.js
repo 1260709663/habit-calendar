@@ -80,7 +80,11 @@ async function fetchPage(url) {
     console.log(dirty);
     die('工作区有未提交的改动，先 commit 再发布（deploy 会把 sw 版本号单独提一个 commit）');
   }
-  git(['fetch', 'origin'], { stdio: 'ignore' });
+  try {
+    git(['fetch', 'origin'], { stdio: 'ignore' });
+  } catch (e) {
+    note('git fetch 失败（网络），改用本地记录的 origin/main 作为基线');
+  }
   const head = git(['rev-parse', 'HEAD']);
   const remote = git(['rev-parse', 'origin/main']);
   const pending = git(['log', '--oneline', 'origin/main..HEAD']);
