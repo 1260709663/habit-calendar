@@ -27,6 +27,14 @@ module.exports.run = async (t) => {
   const app = t.boot({ seed });
   const { $, $$, click, setVal, chip, items, lastItem, addEx, ensureOpen, checks, stored, goDay } = app;
 
+  // 0. 添加区默认收起，点开再收起
+  t.ok(!!$('#tDay .addtoggle'), '没有「＋ 添加动作」按钮');
+  t.eq($('#tDay .addbody').hidden, true, '添加区默认应收起');
+  click($('#tDay .addtoggle'));
+  t.eq($('#tDay .addbody').hidden, false, '点开后添加区应展开');
+  click($('#tDay .addtoggle'));
+  t.eq($('#tDay .addbody').hidden, true, '再点应收起');
+
   // 1. 辅助动作：容量不计、摘要带「辅」、组行标注、反向 PR
   addEx('辅助引体向上', '背', 35, 8, 2);
   const it1 = items().find((el) => el.querySelector('.iname').textContent === '辅助引体向上');

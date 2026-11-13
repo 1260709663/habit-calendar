@@ -96,7 +96,14 @@ function boot(opts) {
   const items = () => $$('#tDay .item');
   const lastItem = () => items().slice(-1)[0];
 
+  // 添加区默认收起，操作前先展开，贴近真实点击路径
+  const openAdd = () => {
+    const body = $('#tDay .addbody');
+    if (body && body.hidden) click($('#tDay .addtoggle'));
+  };
+
   const addEx = (name, part, w, r, n) => {
+    openAdd();
     click(chip(part));
     setVal('#exName', name);
     setVal('#exW', w);
@@ -106,6 +113,7 @@ function boot(opts) {
   };
 
   const addTimed = (name, part, unit, val, n) => {
+    openAdd();
     click(chip(part));
     if (!seg('时').classList.contains('on')) click(seg('时'));
     const u = $('#exUnit');

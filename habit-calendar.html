@@ -217,6 +217,11 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .pchip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 13px;
   font-size:12px;font-weight:600;color:var(--muted)}
 .pchip.on{background:#3b6fe0;border-color:transparent;color:#fff}
+.addbox{margin-top:12px}
+.addtoggle{width:100%;border:1px dashed var(--line);background:transparent;color:var(--muted);
+  border-radius:10px;padding:8px 10px;font-size:13px;cursor:pointer}
+.addtoggle:hover{border-color:#3b6fe0;color:#3b6fe0}
+.addbody[hidden]{display:none}
 .addrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:0;border-top:0}
 .modebar{display:flex;align-items:center;gap:6px;margin-top:10px}
 .seg{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;
@@ -1246,6 +1251,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   const view = { y: today.getFullYear(), m: today.getMonth() + 1 };
   let selKey = todayKey;
   let expanded = -1;
+  let addOpen = false;
   let addPart = '胸';
   let addMode = '力';
   let addUnit = '秒';
@@ -1729,8 +1735,12 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       tb +
       feelHtml +
       '<div class="items">' +
-        (itemsHtml || '<p class="emptyday">还没有动作。先在下面选部位，再挑一个动作，或者复制上次同类型。</p>') +
+        (itemsHtml || '<p class="emptyday">还没有动作。点「＋ 添加动作」开始，或者复制上次同类型。</p>') +
       '</div>' +
+      '<div class="addbox">' +
+      '<button type="button" class="addtoggle" data-act="toggleAdd" aria-expanded="' + (addOpen ? 'true' : 'false') + '">' +
+        (addOpen ? '收起' : '＋ 添加动作') + '</button>' +
+      '<div class="addbody"' + (addOpen ? '' : ' hidden') + '>' +
       '<div class="partchips">' + PARTS.map((p) =>
         '<button type="button" class="pchip' + (p === addPart ? ' on' : '') + '" data-p="' + p + '">' +
         p + '</button>').join('') + '</div>' +
@@ -1749,6 +1759,8 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       '</div>' +
       '<div class="exquick" id="exQuick">' + quickList(addPart) + '</div>' +
       '<p class="addhint" id="addHint">点动作直接填入，也可以手动输入。</p>' +
+      '</div>' +
+      '</div>' +
       '<div class="daysum">' +
         (s.items.length ? s.items.length + ' 个动作 · ' + setsN + ' 组' +
           (warmN ? '（含 ' + warmN + ' 组热身）' : '') + ' · 容量 ' + fmtVol(vol) + durTxt
@@ -2850,6 +2862,15 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
             renderDay();
             showToast(cnt > 0 ? '已加 ' + cnt + ' 组热身' : '已清除热身组');
           });
+        return;
+      }
+      if (act === 'toggleAdd') {
+        addOpen = !addOpen;
+        renderDay();
+        if (addOpen) {
+          const el = $('#exName');
+          if (el && el.focus) { try { el.focus(); } catch (err) { /* 忽略 */ } }
+        }
         return;
       }
       if (act === 'feel') {
