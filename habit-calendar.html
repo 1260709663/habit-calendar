@@ -1036,7 +1036,71 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     return '次';
   }
 
+  /* ---- 存档格式版本 ----
+     每次改动存档结构就把 SCHEMA +1，并在 MIGRATIONS 里补一步。
+     没有 schemaVersion 的旧存档一律视为 1。 */
+  const SCHEMA = 3;
+
+  function eachItem(d, fn) {
+    if (!d || typeof d !== 'object' || !d.sessions || typeof d.sessions !== 'object') return;
+    Object.keys(d.sessions).forEach((k) => {
+      const s = d.sessions[k];
+      if (!s || !Array.isArray(s.items)) return;
+      s.items.forEach((it) => { if (it && typeof it === 'object') fn(it, s); });
+    });
+  }
+
+  const MIGRATIONS = {
+    // 1 -> 2：item 增加 unit / also / assist，根增加 overrides
+    2: (d) => {
+      eachItem(d, (it) => {
+        if (!it.unit) it.unit = inferUnit(it.name, it.part);
+        if (!Array.isArray(it.also)) {
+          const also = (SEED_ALSO[it.name] || []).filter((p) => p !== it.part).slice(0, 2);
+          if (also.length) it.also = also;
+        }
+        if (typeof it.assist !== 'boolean') it.assist = isAssistName(it.name);
+      });
+      if (!d.overrides || typeof d.overrides !== 'object') d.overrides = {};
+    },
+    // 2 -> 3：sets 补到 5 位（末位热身），session 增加 pausedAt / pausedMs / feel
+    3: (d) => {
+      eachItem(d, (it) => {
+        if (!Array.isArray(it.sets)) return;
+        it.sets = it.sets.map((x) => {
+          if (!Array.isArray(x)) return x;
+          const a = x.slice(0, 5);
+          while (a.length < 4) a.push(a.length === 2 ? null : false);
+          if (a.length < 5) a.push(false);
+          return a;
+        });
+      });
+      if (d.sessions && typeof d.sessions === 'object') {
+        Object.keys(d.sessions).forEach((k) => {
+          const s = d.sessions[k];
+          if (!s || typeof s !== 'object') return;
+          if (typeof s.pausedAt !== 'number') s.pausedAt = 0;
+          if (typeof s.pausedMs !== 'number') s.pausedMs = 0;
+          if (s.feel !== 'easy' && s.feel !== 'ok' && s.feel !== 'hard') s.feel = null;
+        });
+      }
+    },
+  };
+
+  function migrate(raw) {
+    if (!raw || typeof raw !== 'object') return raw;
+    const from = Number(raw.schemaVersion) || 1;
+    for (let v = from + 1; v <= SCHEMA; v++) {
+      const step = MIGRATIONS[v];
+      if (typeof step !== 'function') continue;
+      try { step(raw); } catch (err) { /* 单步失败不拖垮整体，normalize 仍会兜底 */ }
+    }
+    raw.schemaVersion = SCHEMA;
+    return raw;
+  }
+
   function normalize(d) {
+    d = migrate(d);
     const sessions = {};
     const exercises = {};
     const templates = {};
@@ -1164,7 +1228,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         if (PARTS.indexOf(d.overrides[k]) !== -1) overrides[String(k).slice(0, 20)] = d.overrides[k];
       });
     }
-    return { plan: plan, abOn: abOn, overrides: overrides, sessions: sessions, exercises: exercises, templates: templates };
+    return { schemaVersion: SCHEMA, plan: plan, abOn: abOn, overrides: overrides, sessions: sessions, exercises: exercises, templates: templates };
   }
 
   function load() {
