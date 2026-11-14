@@ -109,6 +109,34 @@ module.exports.run = async (t) => {
     click($('#tClose'));
   }
 
+  // 11. 输入防抖：击键不立即写盘，300ms 后落盘
+  goDay(-1);
+  ensureOpen();
+  const w0 = stored().sessions[dk(-1)].items[0].sets[0][0];
+  setVal('#tDay .setrow input[data-f="w"]', 99);
+  t.eq(stored().sessions[dk(-1)].items[0].sets[0][0], w0, '击键后不该立刻写盘');
+  await new Promise((r) => setTimeout(r, 420));
+  t.eq(stored().sessions[dk(-1)].items[0].sets[0][0], 99, '300ms 后应写入新值');
+
+  // 12. 动作上移 / 下移
+  goDay(-5);
+  addEx('卧推', '胸', 60, 8, 2);
+  addEx('哑铃飞鸟', '胸', 12, 12, 2);
+  let order = stored().sessions[dk(-5)].items.map((x) => x.name);
+  t.eq(order[0] + '/' + order[1], '卧推/哑铃飞鸟', '初始顺序不对');
+
+  ensureOpen();
+  click(lastItem().querySelector('[data-act="moveUp"]'));
+  order = stored().sessions[dk(-5)].items.map((x) => x.name);
+  t.eq(order[0] + '/' + order[1], '哑铃飞鸟/卧推', '上移后顺序不对');
+  t.eq(items()[0].querySelector('.iname').textContent, '哑铃飞鸟', '上移后界面顺序没跟着变');
+  t.ok(items()[0].querySelector('[data-act="moveUp"]').disabled, '第一个动作的上移按钮应禁用');
+
+  const downBtn = items()[0].querySelector('[data-act="moveDown"]');
+  if (downBtn) click(downBtn);
+  order = stored().sessions[dk(-5)].items.map((x) => x.name);
+  t.eq(order[0] + '/' + order[1], '卧推/哑铃飞鸟', '下移后应复原');
+
   t.eq(app.errors.length, 0, '运行期报错: ' + app.errors.join(' | '));
   app.close();
 };

@@ -1266,6 +1266,21 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     }
   }
 
+  /* 输入类操作防抖写盘：每次击键都序列化整个存档会卡主线程 */
+  let persistTimer = 0;
+  function persistSoon() {
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(() => { persistTimer = 0; persist(); }, 300);
+  }
+  function flushPersist() {
+    if (!persistTimer) return;
+    clearTimeout(persistTimer);
+    persistTimer = 0;
+    persist();
+  }
+  window.addEventListener('pagehide', flushPersist);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flushPersist(); });
+
   function realSessions() {
     return Object.keys(state.sessions)
       .filter((k) => state.sessions[k].items.length)
@@ -1611,6 +1626,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           '<button type="button" class="mini" data-act="addSet" data-i="' + i + '">+ 加一组</button>' +
           '<button type="button" class="mini" data-act="warm" data-i="' + i + '">热身</button>' +
           '<button type="button" class="mini" data-act="delLastSet" data-i="' + i + '">− 减一组</button>' +
+          '<button type="button" class="mini" data-act="moveUp" data-i="' + i + '"' +
+            (i === 0 ? ' disabled' : '') + ' aria-label="上移" title="上移">↑</button>' +
+          '<button type="button" class="mini" data-act="moveDown" data-i="' + i + '"' +
+            (i >= cur().items.length - 1 ? ' disabled' : '') + ' aria-label="下移" title="下移">↓</button>' +
           '<button type="button" class="mini" data-act="part" data-i="' + i + '">改部位</button>' +
           '<button type="button" class="mini" data-act="chart" data-i="' + i + '">趋势</button>' +
           '<input class="note" data-i="' + i + '" data-f="note" value="' + esc(it.note) + '" placeholder="备注（可选）">' +
@@ -2712,6 +2731,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   }
 
   function renderAll() {
+    flushPersist();
     renderHead();
     renderCal();
     renderDay();
@@ -2864,6 +2884,18 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
           });
         return;
       }
+      if (act === 'moveUp' || act === 'moveDown') {
+        const day = ensure();
+        const to = act === 'moveUp' ? i - 1 : i + 1;
+        if (to < 0 || to >= day.items.length) return;
+        const tmp = day.items[i];
+        day.items[i] = day.items[to];
+        day.items[to] = tmp;
+        expanded = to;
+        persist();
+        renderAll();
+        return;
+      }
       if (act === 'toggleAdd') {
         addOpen = !addOpen;
         renderDay();
@@ -2995,16 +3027,16 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const i = Number(t.dataset.i);
     const it = s.items[i];
     if (!it) return;
-    if (f === 'note') { it.note = t.value.slice(0, 80); persist(); return; }
+    if (f === 'note') { it.note = t.value.slice(0, 80); persistSoon(); return; }
     const si = Number(t.dataset.s);
     if (!it.sets[si]) return;
     if (f === 'rir') {
       const raw = t.value.trim();
-      if (raw === '') { it.sets[si][2] = null; persist(); return; }
+      if (raw === '') { it.sets[si][2] = null; persistSoon(); return; }
       const n = Number(raw);
       if (!isFinite(n)) return;
       it.sets[si][2] = Math.max(0, Math.min(10, Math.floor(n)));
-      persist();
+      persistSoon();
       return;
     }
     let v = Number(t.value);
@@ -3019,8 +3051,10 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       if (sum) sum.textContent = summaryOf(it.sets, it.unit);
     }
     updateDaySum();
-    persist();
+    persistSoon();
   });
+
+  $('#tDay').addEventListener('focusout', flushPersist);
 
   $('#tDay').addEventListener('change', (e) => {
     const t = e.target;
