@@ -283,6 +283,9 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
   box-shadow:0 20px 60px -20px rgba(0,0,0,.5)}
 .sheet h3{font-size:16px;margin-bottom:2px}
 .mpr{color:var(--muted);font-size:12px;margin:0 0 8px}
+.endaskrow{display:flex;gap:8px;margin-top:14px}
+.endaskrow .btn{flex:1}
+.endaskrow .mini{flex:0 0 auto;min-width:96px}
 .mclose{position:absolute;right:10px;top:8px;border:0;background:transparent;color:var(--muted);font-size:15px}
 .spark{display:block;width:100%;height:auto;margin:8px 0 10px;overflow:visible}
 .hist{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;
@@ -467,6 +470,17 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         <h3 id="warmTitle">热身组</h3>
         <p class="mpr" id="warmDesc"></p>
         <div class="partchips" id="warmPick" style="border-top:0;padding-top:0;margin-top:6px"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="endAsk" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-label="是否结束训练">
+        <h3>全部做完了</h3>
+        <p class="mpr" id="endAskDesc"></p>
+        <div class="endaskrow">
+          <button type="button" class="btn" id="endYes">结束训练</button>
+          <button type="button" class="mini" id="endNo">还没完</button>
+        </div>
       </div>
     </div>
 
@@ -2575,6 +2589,54 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (e.target.id === 'warmModal') closeWarmPick();
   });
 
+  /* ---- 是否结束训练 ---- */
+  let askedSig = '';
+
+  function endSig(d) {
+    return (d.items || []).map((x) => (x.sets || []).length).join('-');
+  }
+
+  function openEndAsk(d) {
+    let setsN = 0, vol = 0, warm = 0;
+    (d.items || []).forEach((it) => {
+      const ws = workSets(it);
+      setsN += ws.length;
+      vol += ws.reduce((a, x) => a + setVol(it, x), 0);
+      warm += (it.sets || []).filter((x) => x[4]).length;
+    });
+    $('#endAskDesc').textContent = fmtDur(trainElapsed(d)) + ' · ' + setsN + ' 组' +
+      (warm ? '（含 ' + warm + ' 组热身）' : '') + (vol > 0 ? ' · ' + fmtVol(vol) : '');
+    $('#endAsk').hidden = false;
+  }
+
+  function closeEndAsk() {
+    $('#endAsk').hidden = true;
+  }
+
+  $('#endYes').addEventListener('click', () => {
+    const d = state.sessions[selKey];
+    closeEndAsk();
+    if (!d) return;
+    if (!d.startAt) d.startAt = Date.now();
+    if (d.pausedAt) {
+      d.pausedMs = (d.pausedMs || 0) + (Date.now() - d.pausedAt);
+      d.pausedAt = 0;
+    }
+    d.endAt = Date.now();
+    persist();
+    renderDay();
+    showToast('训练已结束');
+  });
+
+  $('#endNo').addEventListener('click', () => {
+    closeEndAsk();
+    showToast('继续训练，随时可点「结束」');
+  });
+
+  $('#endAsk').addEventListener('click', (e) => {
+    if (e.target.id === 'endAsk') closeEndAsk();
+  });
+
   /* ---- 部位选择 ---- */
   let partCb = null;
   function openPartPick(title, desc, cur, cb) {
@@ -2773,12 +2835,20 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         const on = !it.sets[si][3];
         it.sets[si][3] = on;
         if (on && !day.startAt) { day.startAt = Date.now(); day.est = true; }
-        if (!on) day.endAt = 0;
+        // 只有刚结束不久的训练才允许被"取消勾"恢复成进行中；历史记录不该被重新打开
+        if (!on && day.endAt && Date.now() - day.endAt < 2 * 3600 * 1000) day.endAt = 0;
         const allDone = day.items.length > 0 && day.items.every((x) => x.sets.every((y) => y[3]));
-        if (on && allDone) day.endAt = Date.now();
         persist();
         renderDay();
-        if (on && !allDone) startRest(REST_SEC);
+        if (on && !allDone) { startRest(REST_SEC); return; }
+        if (on && allDone) {
+          // 同一批动作只问一次；新增动作/加组后签名变化，才会再问
+          const sig = endSig(day);
+          if (sig !== askedSig) {
+            askedSig = sig;
+            openEndAsk(day);
+          }
+        }
         return;
       }
       if (act === 'startTrain') {
