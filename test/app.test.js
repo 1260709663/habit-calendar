@@ -137,6 +137,24 @@ module.exports.run = async (t) => {
   order = stored().sessions[dk(-5)].items.map((x) => x.name);
   t.eq(order[0] + '/' + order[1], '卧推/哑铃飞鸟', '下移后应复原');
 
+  // 13. 打字后摘要不丢信息（辅 / W 前缀、当日摘要的热身数与时长）
+  goDay(-6);
+  addEx('辅助引体向上', '背', 35, 8, 2);
+  ensureOpen();
+  t.contains(lastItem().querySelector('.isets').textContent, '辅', '辅助动作摘要缺「辅」');
+  setVal('#tDay .setrow input[data-f="w"]', 33);
+  t.contains(lastItem().querySelector('.isets').textContent, '辅', '打字后「辅」前缀丢了');
+
+  addEx('深蹲', '腿', 100, 8, 2);
+  ensureOpen();
+  click(lastItem().querySelector('[data-act="warm"]'));
+  click($$('#warmPick [data-wk]').find((b) => b.dataset.wk === '3'));
+  t.contains(lastItem().querySelector('.isets').textContent, 'W3', '热身摘要缺 W3');
+  t.contains($('#tDay .daysum').textContent, '含 3 组热身', '当日摘要缺热身数');
+  setVal('#tDay .setrow input[data-f="w"]', 55);
+  t.contains(lastItem().querySelector('.isets').textContent, 'W3', '打字后 W3 前缀丢了');
+  t.contains($('#tDay .daysum').textContent, '含 3 组热身', '打字后当日摘要的热身数丢了');
+
   t.eq(app.errors.length, 0, '运行期报错: ' + app.errors.join(' | '));
   app.close();
 };

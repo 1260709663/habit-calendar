@@ -1740,9 +1740,6 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
         '<button type="button" data-act="startTrain">开始训练</button></div>';
     }
     const feelHtml = (sess && sess.endAt) ? reportCard(sess) : '';
-    const durTxt = (sess && sess.startAt && sess.endAt)
-      ? ' · ' + (sess.est ? '约 ' : '') + fmtDur(sess.endAt - sess.startAt) : '';
-
     const segHtml =
       '<div class="modebar">' +
         '<button type="button" class="seg' + (addMode === '力' ? ' on' : '') + '" data-mode="力">力量</button>' +
@@ -1794,11 +1791,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
       '<p class="addhint" id="addHint">点动作直接填入，也可以手动输入。</p>' +
       '</div>' +
       '</div>' +
-      '<div class="daysum">' +
-        (s.items.length ? s.items.length + ' 个动作 · ' + setsN + ' 组' +
-          (warmN ? '（含 ' + warmN + ' 组热身）' : '') + ' · 容量 ' + fmtVol(vol) + durTxt
-          : (durTxt ? '今天还没记录动作' + durTxt : '今天还没记录')) +
-      '</div>' +
+      '<div class="daysum">' + daySumText(s) + '</div>' +
       (s.items.length ? '<div class="bodybox"><h4>这次练到</h4>' + bodySvg(sessionFill(s)) +
         '<div class="rgrid">' + partList + '</div></div>' : '') +
       (footBtns.length ? '<div class="dayfoot">' + footBtns.join('') + '</div>' : '');
@@ -2530,7 +2523,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const row = el.closest('.item');
     if (row) {
       const sum = row.querySelector('.isets');
-      if (sum) sum.textContent = summaryOf(it.sets, it.unit);
+      if (sum) sum.textContent = warmTag(it) + summaryOf(workSets(it), it.unit, it.assist);
     }
   });
 
@@ -2778,18 +2771,25 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     if (e.target.id === 'planModal') closePlan();
   });
 
+  /* 当日摘要文案：渲染与打字时共用同一份，避免两处逻辑漂移 */
+  function daySumText(s) {
+    let vol = 0, setsN = 0, warmN = 0;
+    (s.items || []).forEach((it) => {
+      warmN += (it.sets || []).filter((x) => x[4]).length;
+      workSets(it).forEach((x) => { setsN += 1; vol += setVol(it, x); });
+    });
+    const durTxt = (s.startAt && s.endAt)
+      ? ' · ' + (s.est ? '约 ' : '') + fmtDur(trainElapsed(s)) : '';
+    if (!(s.items || []).length) return durTxt ? '今天还没记录动作' + durTxt : '今天还没记录';
+    return s.items.length + ' 个动作 · ' + setsN + ' 组' +
+      (warmN ? '（含 ' + warmN + ' 组热身）' : '') + ' · 容量 ' + fmtVol(vol) + durTxt;
+  }
+
   function updateDaySum() {
     const s = state.sessions[selKey];
     if (!s) return;
-    let vol = 0, setsN = 0, warmN = 0;
-    s.items.forEach((it) => { warmN += (it.sets || []).filter((x) => x[4]).length; });
-    s.items.forEach((it) => workSets(it).forEach((x) => { setsN += 1; vol += setVol(it, x); }));
     const el = $('#tDay .daysum');
-    if (el) {
-      el.textContent = s.items.length
-        ? s.items.length + ' 个动作 · ' + setsN + ' 组 · 容量 ' + fmtVol(vol)
-        : '今天还没记录';
-    }
+    if (el) el.textContent = daySumText(s);
   }
 
   function renderAll() {
@@ -3118,7 +3118,7 @@ h1{font-size:23px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
     const row = t.closest ? t.closest('.item') : null;
     if (row) {
       const sum = row.querySelector('.isets');
-      if (sum) sum.textContent = summaryOf(it.sets, it.unit);
+      if (sum) sum.textContent = warmTag(it) + summaryOf(workSets(it), it.unit, it.assist);
     }
     updateDaySum();
     persistSoon();
